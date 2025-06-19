@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import siteInfo from "@/utils/siteInfo";
 
 export const metadata: Metadata = {
-  title: "NiFi FlowFile Tools",
-  description: "Various tools for interacting with Apache NiFi.",
+  title: siteInfo.title,
+  description: siteInfo.description,
 };
 
 export default function RootLayout({

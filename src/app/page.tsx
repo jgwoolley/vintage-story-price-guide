@@ -51,7 +51,6 @@ async function cacheDownloadVintageStory(serverBranch: string, serverVersion: st
   return cacheDownload(url, cacheFile);
 }
 
-
 type VsServerContext = {
   header: tar.Headers,
   stream: Stream.PassThrough,

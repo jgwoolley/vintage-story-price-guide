@@ -17,6 +17,7 @@ type Trade = {
     type: TradeType,
     code: string,
     name: string,
+    stacksize: number,
     min: number,
     max: number,
 }
@@ -57,8 +58,10 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
     const { tradelists } = vsServer.assets.survival.config;
     const langLut = vsServer.assets.game.lang.lut.get(lang);
 
+    const [itemNameFriendly, setItemNameFriendly] = useState<boolean>(true);
     const [itemNameFilter, setItemNameFilter] = useState<string>("");
     const [traderTypeFilter, setTraderTypeFilter] = useState<"" | "trader" | "villager">("trader");
+    const [traderNameFriendly, setTraderNameFriendly] = useState<boolean>(true);
     const [traderNameFilter, setTraderNameFilter] = useState<string>("");
     const [tradeTypeFilter, setTradeTypeFilter] = useState<"" | "selling" | "buying">("");
 
@@ -89,6 +92,7 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
                         traderCode: trader.traderCode,
                         name: itemName,
                         type: tradeType,
+                        stacksize: trade.stacksize,
                         min: trade.price.avg - trade.price.var,
                         max: trade.price.avg + trade.price.var,
                         code: trade.code,
@@ -155,8 +159,9 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
                         <th>Trader Type</th>
                         <th>Trader Name</th>
                         <th>Buying / Selling</th>
-                        <th>min</th>
-                        <th>max</th>
+                        <th>Stack Size</th>
+                        <th>Cost Min</th>
+                        <th>Cost Max</th>
                     </tr>
                     <tr>
                         <th>
@@ -166,6 +171,7 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
                                     <option key={index} value={x}>{x}</option>)
                                 )}
                             </datalist>
+                            <button onClick={() => setItemNameFriendly(!itemNameFriendly)}>{itemNameFriendly ? "🫣": "👀"}</button>
                         </th>
                         <th>
                             <select name="traderType" value={traderTypeFilter} onChange={x => {
@@ -185,6 +191,7 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
                                     <option key={index} value={x}>{x}</option>)
                                 )}
                             </datalist>
+                            <button onClick={() => setTraderNameFriendly(!traderNameFriendly)}>{traderNameFriendly ? "🫣": "👀"}</button>
                         </th>
                         <th>
                             <select name="TradeType" value={tradeTypeFilter} onChange={x => {
@@ -199,19 +206,21 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
                         </th>
                         <th></th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {trades.map((trade, index) => (
                         <tr key={index}>
                             <td>
-                                <abbr title={trade.code}>{trade.name}</abbr>
+                                {itemNameFriendly ? trade.name : trade.code}
                             </td>
                             <td>{trade.traderType}</td>
                             <td>
-                                <abbr title={trade.traderCode}>{trade.traderName}</abbr>
+                                {traderNameFriendly ? trade.traderName : trade.traderCode}
                             </td>
                             <td>{trade.type}</td>
+                            <td>{trade.stacksize}</td>
                             <td>{trade.min}</td>
                             <td>{trade.max}</td>
                         </tr>
