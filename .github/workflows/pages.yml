@@ -41,9 +41,9 @@ jobs:
           cache: 'pnpm'
       # Experimental NextJS Version
       - name: "NextJS Project: Install dependencies"
-        run: npm install
+        run: pnpm install
       - name: "NextJS Project: Build"
-        run: npm run build
+        run: pnpm run build
       # Deploy GitHub Pages            
       - name: Setup Pages
         uses: actions/configure-pages@v5
