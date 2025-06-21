@@ -1,0 +1,323 @@
+'use client';
+
+import { z } from "zod";
+import { downloadFile } from "@/utils/downloadFile";
+import { ChangeEventHandler, Dispatch, MouseEventHandler, PropsWithChildren, SetStateAction, useCallback, useRef, useState } from "react";
+
+type Node = {
+    x: number,
+    z: number,
+}
+
+function calculateDistance({ source, destination }: { source: Node, destination: Node }) {
+    const dx = source.x - destination.x;
+    const dz = source.z - destination.z;
+    return Math.sqrt(dx * dx + dz * dz);
+}
+
+const WayPointJsonSchema = z.object({
+    name: z.string(), 
+    x: z.number(),
+    y: z.number(),
+    z: z.number(),
+    connection: z.number().optional(),
+});
+
+type WayPointJson = z.infer<typeof WayPointJsonSchema>;
+
+const WayPointJsonsSchema = z.array(WayPointJsonSchema);
+type WayPointJsons = z.infer<typeof WayPointJsonsSchema>;
+
+type WayPoint = {
+    name: string,
+    x: number,
+    y: number,
+    z: number,
+    connection?: WayPoint,
+}
+
+function deserializeWayPoints(waypoints: WayPointJsons): WayPoint[] {
+    const results: WayPoint[] = [];
+    for (const row of waypoints) {
+        results.push({
+            name: row.name, x: row.x, y: row.y, z: row.z,
+        });
+    }
+
+    for (let i = 0; i < results.length; i++) {
+        const { connection } = waypoints[i];
+        if (connection != undefined) {
+            results[i].connection = results[connection];
+        }
+    }
+
+    return results;
+}
+
+function serializeWayPoints(waypoints: WayPoint[]) {
+    const results: WayPointJson[] = [];
+    for (const row of waypoints) {
+        const connection = waypoints.findIndex(obj => obj === row.connection);
+        results.push({
+            name: row.name,
+            x: row.x,
+            y: row.y,
+            z: row.z,
+            connection: connection === -1 ? undefined : connection,
+        });
+    }
+
+    return results;
+}
+
+function stringifyWayPoint(waypoint: WayPoint) {
+    return `${waypoint.name} (${waypoint.x}, ${waypoint.y}, ${waypoint.z})`;
+}
+
+type WayPointSelectionProps = {
+    name: string,
+    id: string,
+    node: WayPoint | undefined,
+    setNode: (value: WayPoint | undefined) => void,
+    waypoints: WayPoint[],
+    emptyValid: boolean,
+}
+
+function WayPointSelection({ waypoints, node, setNode, name, id, emptyValid }: WayPointSelectionProps) {
+    return (
+        <select
+            name={name}
+            id={id}
+            value={node ? waypoints.indexOf(node) : ''}
+            onChange={
+                e => {
+                    const { value: indexRaw } = e.target;
+                    const index = parseInt(indexRaw, 10);
+                    const value = waypoints[index];
+                    console.log(index, value);
+                    setNode(value);
+                }
+            }
+        >
+            {emptyValid ? <option value="" /> : (!node && <option value="" disabled>Select a WayPoint</option>)}
+            {waypoints.map((row, index) => (
+                <option key={index} value={index}>{stringifyWayPoint(row)}</option>)
+            )}
+        </select>
+    )
+}
+
+type WayPointRowProps = {
+    row: WayPoint,
+    editRow: number,
+    setEditRow: Dispatch<SetStateAction<number>>,
+    index: number,
+    waypoints: WayPoint[],
+    setWaypoints: Dispatch<SetStateAction<WayPoint[]>>
+    spliteWaypoints: (start: number, deleteCount?: number) => WayPoint[],
+}
+
+function WayPointRow({ waypoints, setWaypoints, row, index, spliteWaypoints, editRow, setEditRow }: WayPointRowProps) {
+    if (editRow === index) {
+        return (
+            <tr>
+                <td>
+                    <input value={row.name} onChange={(e) => {
+                        row.name = e.target.value;
+                        setWaypoints([...waypoints]);
+                    }} />
+                </td>
+                <td>
+                    <input value={row.x} onChange={(e) => {
+                        row.x = parseInt(e.target.value);
+                        setWaypoints([...waypoints]);
+                    }} />
+                </td>
+                <td>
+                    <input value={row.y} onChange={(e) => {
+                        row.y = parseInt(e.target.value);
+                        setWaypoints([...waypoints]);
+                    }} />
+                </td>
+                <td>
+                    <input value={row.z} onChange={(e) => {
+                        row.z = parseInt(e.target.value);
+                        setWaypoints([...waypoints]);
+                    }} />
+                </td>
+                <td>
+                    <WayPointSelection
+                        name="destinationNode"
+                        id="destinationNode"
+                        node={row.connection}
+                        setNode={(value) => {
+                            row.connection = value;
+                            setWaypoints([...waypoints]);
+                        }}
+                        waypoints={waypoints}
+                        emptyValid={true}
+                    />
+
+                </td>
+                <td>
+                    <button onClick={() => spliteWaypoints(index, 1)}>remove</button>
+                    <button onClick={() => setEditRow(-1)}>save</button>
+                </td>
+            </tr>
+        )
+    }
+
+    return (
+        <tr>
+            <td>{row.name}</td>
+            <td>{row.x}</td>
+            <td>{row.y}</td>
+            <td>{row.z}</td>
+            <td>{row.connection?.name}</td>
+            <td>
+                <button onClick={() => spliteWaypoints(index, 1)}>remove</button>
+                <button onClick={() => setEditRow(index)}>edit</button>
+            </td>
+        </tr>
+    )
+}
+
+type FileUploaderProps = PropsWithChildren<{
+    handleFiles: (files: FileList) => void
+}>;
+
+function FileUploader({handleFiles, children}: FileUploaderProps) {
+    const hiddenFileInput = useRef<HTMLInputElement>(null);
+
+    const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
+        if (hiddenFileInput.current) {
+            hiddenFileInput.current.click();
+        }
+    };
+
+    const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+        if (e.target.files) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+    };
+
+    return (
+        <>
+            <button onClick={handleClick}>
+                {children}
+            </button>
+            <input
+                type="file"
+                onChange={handleChange}
+                ref={hiddenFileInput}
+                style={{ display: 'none' }} // Hide the input element
+            />
+        </>
+    );
+}
+
+export default function TeleportTable() {
+    const [waypoints, setWaypoints] = useState<WayPoint[]>([]);
+
+    const [sourceNode, setSourceNode] = useState<WayPoint | undefined>(waypoints.length > 0 ? waypoints[0] : undefined);
+    const [destinationNode, setDestinationNode] = useState<WayPoint | undefined>(waypoints.length > 0 ? waypoints[0] : undefined);
+    const [editRow, setEditRow] = useState<number>(-1);
+
+    const spliteWaypoints = useCallback((start: number, deleteCount?: number) => {
+        setEditRow(-1);
+        const results = waypoints.splice(start, deleteCount)
+
+        results.forEach(row => {
+            if (row == sourceNode) {
+                setSourceNode(undefined);
+            }
+            if (row == destinationNode) {
+                setDestinationNode(undefined);
+            }
+        });
+
+        setWaypoints([...waypoints]);
+        return results;
+    }, [waypoints]);
+
+    return (
+        <>
+            <h3>WayPoints</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>waypoint</th>
+                        <th>x</th>
+                        <th>y</th>
+                        <th>z</th>
+                        <th>connection</th>
+                        <th>edit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {waypoints.map((row, index) => (
+                        <WayPointRow
+                            key={index}
+                            row={row}
+                            index={index}
+                            spliteWaypoints={spliteWaypoints}
+                            editRow={editRow}
+                            setEditRow={setEditRow}
+                            waypoints={waypoints}
+                            setWaypoints={setWaypoints}
+                        />
+                    ))}
+                </tbody>
+            </table>
+            <br />
+            <FileUploader handleFiles={async (files) => {
+                for(const file of files) {
+                    const data: unknown = JSON.parse(await file.text());
+                    const result = WayPointJsonsSchema.safeParse(data);
+                    if(result.success) {
+                        const newWaypoints = deserializeWayPoints(result.data);
+                        setWaypoints([...waypoints, ...newWaypoints]);
+                    }
+                }
+            }}>Upload File</FileUploader>
+            <button onClick={() => {
+                setWaypoints([...waypoints, { name: "", x: 0, y: 0, z: 0 }]);
+                setEditRow(waypoints.length);
+            }}>Add Row</button>
+            <button onClick={() => {
+                const results = serializeWayPoints(waypoints);
+                downloadFile(new File([JSON.stringify(results)], "waypoints.json"));
+                console.log(results);
+            }}>Download File</button>
+
+            <h3>Select Source / Destination</h3>
+            <label htmlFor="sourceNode">Source:</label>
+            <WayPointSelection
+                name="sourceNode"
+                id="sourceNode"
+                node={sourceNode}
+                setNode={setSourceNode}
+                waypoints={waypoints}
+                emptyValid={false}
+            />
+            <br />
+            <label htmlFor="destinationNode">Destination:</label>
+            <WayPointSelection
+                name="destinationNode"
+                id="destinationNode"
+                node={destinationNode}
+                setNode={setDestinationNode}
+                waypoints={waypoints}
+                emptyValid={false}
+            />
+
+            {(sourceNode != undefined && destinationNode != undefined) && (
+                <>
+                    <h3>Distance</h3>
+                    <p><u>Bird{"'"}s Eye</u>: {Math.round(100 * calculateDistance({ source: sourceNode, destination: destinationNode })) / 100}</p>
+                </>
+            )}
+        </>
+    )
+}

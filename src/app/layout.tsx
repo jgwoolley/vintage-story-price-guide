@@ -5,6 +5,7 @@ import siteInfo from "@/utils/siteInfo";
 export const metadata: Metadata = {
   title: siteInfo.title,
   description: siteInfo.description,
+  manifest: "manifest.webmanifest",
 };
 
 export default function RootLayout({
