@@ -120,7 +120,7 @@ function FileUploader({ handleFiles, children }: FileUploaderProps) {
 }
 
 // Cytoscape stylesheet definitions for nodes and edges
-const stylesheet: cytoscape.StylesheetJson = [
+const stylesheet: cytoscape.Stylesheet[] = [
     {
         selector: 'node',
         style: {
