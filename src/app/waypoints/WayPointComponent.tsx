@@ -8,81 +8,7 @@ import { useMemo } from "react";
 import { useEffect } from "react";
 import { calculateDistance, deserializeWayPoints, serializeWayPoints, WayPoint, WayPointJsonsSchema } from "./utils";
 import WayPointSelection from "./WayPointSelection";
-
-type WayPointRowProps = {
-    row: WayPoint,
-    editRow: number,
-    setEditRow: Dispatch<SetStateAction<number>>,
-    index: number,
-    waypoints: WayPoint[],
-    setWaypoints: Dispatch<SetStateAction<WayPoint[]>>
-    splitWaypoints: (start: number, deleteCount?: number) => WayPoint[],
-}
-
-function WayPointRow({ waypoints, setWaypoints, row, index, splitWaypoints, editRow, setEditRow }: WayPointRowProps) {
-    if (editRow === index) {
-        return (
-            <tr>
-                <td>
-                    <input value={row.name} onChange={(e) => {
-                        row.name = e.target.value;
-                        setWaypoints([...waypoints]);
-                    }} />
-                </td>
-                <td>
-                    <input value={row.x} onChange={(e) => {
-                        row.x = parseInt(e.target.value);
-                        setWaypoints([...waypoints]);
-                    }} />
-                </td>
-                <td>
-                    <input value={row.y} onChange={(e) => {
-                        row.y = parseInt(e.target.value);
-                        setWaypoints([...waypoints]);
-                    }} />
-                </td>
-                <td>
-                    <input value={row.z} onChange={(e) => {
-                        row.z = parseInt(e.target.value);
-                        setWaypoints([...waypoints]);
-                    }} />
-                </td>
-                <td>
-                    <WayPointSelection
-                        name="destinationNode"
-                        id="destinationNode"
-                        node={row.connection}
-                        setNode={(value) => {
-                            row.connection = value;
-                            setWaypoints([...waypoints]);
-                        }}
-                        waypoints={waypoints}
-                        emptyValid={true}
-                    />
-
-                </td>
-                <td>
-                    <button onClick={() => splitWaypoints(index, 1)}>remove</button>
-                    <button onClick={() => setEditRow(-1)}>save</button>
-                </td>
-            </tr>
-        )
-    }
-
-    return (
-        <tr>
-            <td>{row.name}</td>
-            <td>{row.x}</td>
-            <td>{row.y}</td>
-            <td>{row.z}</td>
-            <td>{row.connection?.name}</td>
-            <td>
-                <button onClick={() => splitWaypoints(index, 1)}>remove</button>
-                <button onClick={() => setEditRow(index)}>edit</button>
-            </td>
-        </tr>
-    )
-}
+import WayPointRow from "./WayPointRow";
 
 type FileUploaderProps = PropsWithChildren<{
     handleFiles: (files: FileList) => void
@@ -426,6 +352,15 @@ export default function WayPointComponent() {
                                 setEditRow={setEditRow}
                                 waypoints={waypoints}
                                 setWaypoints={setWaypoints}
+                                onZoom={(waypoint) => {
+                                    const cy = cyRef.current;
+                                    if(cy == undefined) {
+                                        return;
+                                    }
+                                    cy.fit(cy.$id(waypoint.id));
+                                }}
+                                setDestinationNode={setDestinationNode}
+                                setSourceNode={setSourceNode}
                             />
                         ))}
                     </tbody>
