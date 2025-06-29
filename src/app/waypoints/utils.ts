@@ -1,16 +1,5 @@
 import { z } from "zod";
 
-export type Node = {
-    x: number,
-    z: number,
-}
-
-export function calculateDistance({ source, destination }: { source: Node, destination: Node }) {
-    const dx = source.x - destination.x;
-    const dz = source.z - destination.z;
-    return Math.sqrt(dx * dx + dz * dz);
-}
-
 export const WayPointJsonSchema = z.object({
     name: z.string(),
     x: z.number(),
@@ -30,6 +19,16 @@ export type WayPoint = {
     y: number,
     z: number,
     connection?: WayPoint,
+}
+
+export function calculateDistance({ source, destination }: { source: WayPoint, destination: WayPoint }) {
+    if(source.connection?.id === destination.id || destination.connection?.id === source.id) {
+        return 0;
+    }
+
+    const dx = source.x - destination.x;
+    const dz = source.z - destination.z;
+    return Math.sqrt(dx * dx + dz * dz);
 }
 
 export function deserializeWayPoints(waypoints: WayPointJsons): WayPoint[] {

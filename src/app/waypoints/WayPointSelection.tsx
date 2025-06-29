@@ -20,7 +20,7 @@ export default function WayPointSelection({ waypoints, node, setNode, name, id, 
                     const { value: indexRaw } = e.target;
                     const index = parseInt(indexRaw, 10);
                     const value = waypoints[index];
-                    console.log(index, value);
+                    console.log({index, value});
                     setNode(value);
                 }
             }
