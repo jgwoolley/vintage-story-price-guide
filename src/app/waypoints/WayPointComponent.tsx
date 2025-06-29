@@ -276,15 +276,16 @@ export default function WayPointComponent() {
                 for (let i = 0; i < path.nodes().length - 1; i++) {
                     const fromNode = path.nodes()[i];
                     const toNode = path.nodes()[i + 1];
-                    const edge = fromNode.edgesWith(toNode);
+                    const edges = fromNode.edgesWith(toNode);
 
-                    if (edge.length > 0) {
-                        currentPathSteps.push({
-                            from: fromNode.data('name'),
-                            to: toNode.data('name'),
-                            // distance: edge.data('weight') || 0,
-                            distance: 0,
-                        });
+                    if (edges.length > 0) {
+                        edges.forEach(edge => {
+                            currentPathSteps.push({
+                                from: fromNode.data('name'),
+                                to: toNode.data('name'),
+                                distance: edge.data('weight') || 0,
+                            });
+                        }) 
                     }
                 }
                 setPathSteps(currentPathSteps);
