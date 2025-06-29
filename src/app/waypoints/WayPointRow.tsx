@@ -13,8 +13,10 @@ export type WayPointRowProps = {
     setWaypoints: Dispatch<SetStateAction<WayPoint[]>>
     splitWaypoints: (start: number, deleteCount?: number) => WayPoint[],
     onZoom: (waypoint: WayPoint) => void,
-    setSourceNode: (waypoint: WayPoint) => void,
-    setDestinationNode: (waypoint: WayPoint) => void,
+    sourceNode: WayPoint | undefined,
+    setSourceNode: (waypoint: WayPoint | undefined) => void,
+    destinationNode: WayPoint | undefined,
+    setDestinationNode: (waypoint: WayPoint | undefined) => void,
 }
 
 export default function WayPointRow({ 
@@ -26,7 +28,9 @@ export default function WayPointRow({
     editRow, 
     setEditRow, 
     onZoom,
+    sourceNode,
     setSourceNode,
+    destinationNode,
     setDestinationNode,
 }: WayPointRowProps) {
     if (editRow === index) {
@@ -90,9 +94,12 @@ export default function WayPointRow({
         )
     }
 
+    const isSource = sourceNode?.id === row.id;
+    const isDestination = destinationNode?.id === row.id;
+
     return (
         <tr>
-            <td>{row.name}</td>
+            <td>{isSource || isDestination ? <b>{row.name}</b>: <span>{row.name}</span>}</td>
             <td>{row.x}</td>
             <td>{row.y}</td>
             <td>{row.z}</td>

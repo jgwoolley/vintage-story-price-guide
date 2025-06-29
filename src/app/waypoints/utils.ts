@@ -73,3 +73,12 @@ export function serializeWayPoints(waypoints: WayPoint[]) {
 export function stringifyWayPoint(waypoint: WayPoint) {
     return `${waypoint.name} (${waypoint.x}, ${waypoint.y}, ${waypoint.z})`;
 }
+
+/**
+ * Type for a single step in the calculated path.
+ */
+export type PathStep = {
+    from: string;
+    to: string;
+    distance: number;
+};
