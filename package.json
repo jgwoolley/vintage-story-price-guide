@@ -1,5 +1,5 @@
 {
-  "name": "nf2t-webtools",
+  "name": "vintage-story-price-guide",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -20,6 +20,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@types/cytoscape": "3.2.9",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

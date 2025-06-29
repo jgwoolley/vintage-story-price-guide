@@ -126,17 +126,17 @@ const stylesheet: cytoscape.Stylesheet[] = [
         style: {
             'background-color': '#666',
             label: 'data(name)',
-            'font-size': '12px',
-            color: '#fff',
-            'text-halign': 'center',
-            'text-valign': 'center',
+            // 'font-size': '12px',
+            // color: '#fff',
+            // 'text-halign': 'center',
+            // 'text-valign': 'center',
             'width': '20px', // Fixed node size
             'height': '20px',
             'border-width': 1,
             'border-color': '#444',
-            'text-outline-color': '#333',
-            'text-outline-width': 1,
-            'text-transform': 'uppercase',
+            // 'text-outline-color': '#333',
+            // 'text-outline-width': 1,
+            // 'text-transform': 'uppercase',
         },
     },
     {
@@ -148,15 +148,15 @@ const stylesheet: cytoscape.Stylesheet[] = [
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             'label': 'data(weight)', // Show weight if applicable
-            'font-size': '8px',
-            'color': '#666',
-            'text-background-opacity': 1,
-            'text-background-color': '#eee',
-            'visibility': 'visible', // Default to visible
-            'text-margin-y': -10, // Adjust label position
-            'line-cap': 'round',
-            'arrow-scale': 0.8,
-            'text-rotation': 'autorotate', // Rotate labels with edges
+            // 'font-size': '8px',
+            // 'color': '#666',
+            // 'text-background-opacity': 1,
+            // 'text-background-color': '#eee',
+            // 'visibility': 'visible', // Default to visible
+            // 'text-margin-y': -10, // Adjust label position
+            // 'line-cap': 'round',
+            // 'arrow-scale': 0.8,
+            // 'text-rotation': 'autorotate', // Rotate labels with edges
         },
     },
     {
@@ -165,9 +165,9 @@ const stylesheet: cytoscape.Stylesheet[] = [
             'line-color': 'red',
             'target-arrow-color': 'red',
             'width': 4,
-            'visibility': 'visible', // Ensure visible
+            // 'visibility': 'visible', // Ensure visible
             'opacity': 1, // Ensure opaque
-            'z-index': 9999, // Bring highlighted path to front
+            // 'z-index': 9999, // Bring highlighted path to front
         },
     },
     {
@@ -176,7 +176,7 @@ const stylesheet: cytoscape.Stylesheet[] = [
             'background-color': 'blue',
             'border-width': 2,
             'border-color': 'darkblue',
-            'z-index': 9999, // Bring highlighted node to front
+            // 'z-index': 9999, // Bring highlighted node to front
         },
     },
     {
@@ -185,13 +185,13 @@ const stylesheet: cytoscape.Stylesheet[] = [
             'background-color': 'green',
             'border-width': 3,
             'border-color': 'darkgreen',
-            'z-index': 9999,
+            // 'z-index': 9999,
         },
     },
     {
         selector: '.hidden-edge',
         style: {
-            'visibility': 'hidden', // Used to hide non-shortest path edges
+            // 'visibility': 'hidden', // Used to hide non-shortest path edges
             'opacity': 0,
             'width': 0.1, // Small width to avoid rendering artifacts even if invisible
         },
@@ -204,9 +204,9 @@ const stylesheet: cytoscape.Stylesheet[] = [
             'target-arrow-color': 'purple',
             'line-style': 'dotted', // Make them dotted for visual distinction
             'label': 'Teleporter',
-            'font-size': '10px',
-            'text-background-color': '#f0f',
-            'text-background-opacity': 0.7,
+            // 'font-size': '10px',
+            // 'text-background-color': '#f0f',
+            // 'text-background-opacity': 0.7,
         },
     },
 ];
@@ -277,10 +277,10 @@ export default function WayPointComponent() {
             for (let j = i + 1; j < waypoints.length; j++) {
                 const destination = waypoints[j];
 
-                const weight = calculateDistance({
+                const weight = Math.round(calculateDistance({
                     source: source,
                     destination: destination,
-                });
+                }));
 
                 // Only add an edge if it has a valid, non-infinite distance (0 for teleporters included)
                 if (weight !== Infinity && !isNaN(weight)) {
@@ -326,11 +326,11 @@ export default function WayPointComponent() {
             const aStarResult = cy.elements().aStar({
                 root: `#${sourceNode.id}`,
                 goal: `#${destinationNode.id}`,
-                weight: edge => {
-                    const edgeWeight = edge.data('weight');
-                    // Ensure weight is a number, default to 1 if problematic
-                    return typeof edgeWeight === 'number' && !isNaN(edgeWeight) ? edgeWeight : 1;
-                },
+                // weight: edge => {
+                //     const edgeWeight = edge.data('weight');
+                //     // Ensure weight is a number, default to 1 if problematic
+                //     return typeof edgeWeight === 'number' && !isNaN(edgeWeight) ? edgeWeight : 1;
+                // },
                 directed: false, // Set to true if your graph is directed
             });
 
@@ -356,7 +356,8 @@ export default function WayPointComponent() {
                         currentPathSteps.push({
                             from: fromNode.data('name'),
                             to: toNode.data('name'),
-                            distance: edge.data('weight') || 0,
+                            // distance: edge.data('weight') || 0,
+                            distance: 0,
                         });
                     }
                 }
