@@ -1,122 +1,13 @@
 'use client';
 
-import { z } from "zod";
 import { downloadFile } from "@/utils/downloadFile";
 import { ChangeEventHandler, Dispatch, MouseEventHandler, PropsWithChildren, SetStateAction, useCallback, useRef, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 import cytoscape from "cytoscape";
 import { useMemo } from "react";
 import { useEffect } from "react";
-
-type Node = {
-    x: number,
-    z: number,
-}
-
-function calculateDistance({ source, destination }: { source: Node, destination: Node }) {
-    const dx = source.x - destination.x;
-    const dz = source.z - destination.z;
-    return Math.sqrt(dx * dx + dz * dz);
-}
-
-const WayPointJsonSchema = z.object({
-    name: z.string(),
-    x: z.number(),
-    y: z.number(),
-    z: z.number(),
-    connection: z.number().optional(),
-});
-
-type WayPointJson = z.infer<typeof WayPointJsonSchema>;
-
-const WayPointJsonsSchema = z.array(WayPointJsonSchema);
-type WayPointJsons = z.infer<typeof WayPointJsonsSchema>;
-
-type WayPoint = {
-    id: string,
-    name: string,
-    x: number,
-    y: number,
-    z: number,
-    connection?: WayPoint,
-}
-
-
-function deserializeWayPoints(waypoints: WayPointJsons): WayPoint[] {
-    const results: WayPoint[] = [];
-    for (let index = 0; index < waypoints.length; index++) {
-        const row = waypoints[index];
-        results.push({
-            id: `${index}`,
-            name: row.name,
-            x: row.x,
-            y: row.y,
-            z: row.z,
-        });
-    }
-
-    for (let i = 0; i < results.length; i++) {
-        const { connection } = waypoints[i];
-        if (connection != undefined) {
-            results[i].connection = results[connection];
-        }
-    }
-
-    return results;
-}
-
-function serializeWayPoints(waypoints: WayPoint[]) {
-    const results: WayPointJson[] = [];
-    for (const row of waypoints) {
-        const connection = waypoints.findIndex(obj => obj === row.connection);
-        results.push({
-            name: row.name,
-            x: row.x,
-            y: row.y,
-            z: row.z,
-            connection: connection === -1 ? undefined : connection,
-        });
-    }
-
-    return results;
-}
-
-function stringifyWayPoint(waypoint: WayPoint) {
-    return `${waypoint.name} (${waypoint.x}, ${waypoint.y}, ${waypoint.z})`;
-}
-
-type WayPointSelectionProps = {
-    name: string,
-    id: string,
-    node: WayPoint | undefined,
-    setNode: (value: WayPoint | undefined) => void,
-    waypoints: WayPoint[],
-    emptyValid: boolean,
-}
-
-function WayPointSelection({ waypoints, node, setNode, name, id, emptyValid }: WayPointSelectionProps) {
-    return (
-        <select
-            name={name}
-            id={id}
-            value={node ? waypoints.indexOf(node) : ''}
-            onChange={
-                e => {
-                    const { value: indexRaw } = e.target;
-                    const index = parseInt(indexRaw, 10);
-                    const value = waypoints[index];
-                    console.log(index, value);
-                    setNode(value);
-                }
-            }
-        >
-            {emptyValid ? <option value="" /> : (!node && <option value="" disabled>Select a WayPoint</option>)}
-            {waypoints.map((row, index) => (
-                <option key={index} value={index}>{stringifyWayPoint(row)}</option>)
-            )}
-        </select>
-    )
-}
+import { calculateDistance, deserializeWayPoints, serializeWayPoints, WayPoint, WayPointJsonsSchema } from "./utils";
+import WayPointSelection from "./WayPointSelection";
 
 type WayPointRowProps = {
     row: WayPoint,
@@ -125,10 +16,10 @@ type WayPointRowProps = {
     index: number,
     waypoints: WayPoint[],
     setWaypoints: Dispatch<SetStateAction<WayPoint[]>>
-    spliteWaypoints: (start: number, deleteCount?: number) => WayPoint[],
+    splitWaypoints: (start: number, deleteCount?: number) => WayPoint[],
 }
 
-function WayPointRow({ waypoints, setWaypoints, row, index, spliteWaypoints, editRow, setEditRow }: WayPointRowProps) {
+function WayPointRow({ waypoints, setWaypoints, row, index, splitWaypoints, editRow, setEditRow }: WayPointRowProps) {
     if (editRow === index) {
         return (
             <tr>
@@ -171,7 +62,7 @@ function WayPointRow({ waypoints, setWaypoints, row, index, spliteWaypoints, edi
 
                 </td>
                 <td>
-                    <button onClick={() => spliteWaypoints(index, 1)}>remove</button>
+                    <button onClick={() => splitWaypoints(index, 1)}>remove</button>
                     <button onClick={() => setEditRow(-1)}>save</button>
                 </td>
             </tr>
@@ -186,7 +77,7 @@ function WayPointRow({ waypoints, setWaypoints, row, index, spliteWaypoints, edi
             <td>{row.z}</td>
             <td>{row.connection?.name}</td>
             <td>
-                <button onClick={() => spliteWaypoints(index, 1)}>remove</button>
+                <button onClick={() => splitWaypoints(index, 1)}>remove</button>
                 <button onClick={() => setEditRow(index)}>edit</button>
             </td>
         </tr>
@@ -259,13 +150,13 @@ const stylesheet: cytoscape.StylesheetJson = [
   },
 ];
 
-export default function TeleportTable() {
+export default function WayPointComponent() {
     const [waypoints, setWaypoints] = useState<WayPoint[]>([]);
     const [sourceNode, setSourceNode] = useState<WayPoint | undefined>(waypoints.length > 0 ? waypoints[0] : undefined);
     const [destinationNode, setDestinationNode] = useState<WayPoint | undefined>(waypoints.length > 0 ? waypoints[0] : undefined);
     const [editRow, setEditRow] = useState<number>(-1);
 
-    const spliteWaypoints = useCallback((start: number, deleteCount?: number) => {
+    const splitWaypoints = useCallback((start: number, deleteCount?: number) => {
         setEditRow(-1);
         const results = waypoints.splice(start, deleteCount)
 
@@ -280,7 +171,7 @@ export default function TeleportTable() {
 
         setWaypoints([...waypoints]);
         return results;
-    }, [waypoints]);
+    }, [waypoints, destinationNode, sourceNode]);
 
     const elements = useMemo<cytoscape.ElementDefinition[]>(() => {
         const results: cytoscape.ElementDefinition[] = [];
@@ -370,7 +261,7 @@ useEffect(() => {
         console.log(`No path found from ${startNodeId} to ${endNodeId}.`);
       }
     }
-  }, [cyRef.current, sourceNode, destinationNode]);
+  }, [ sourceNode, destinationNode ]);
 
     return (
         <>
@@ -392,7 +283,7 @@ useEffect(() => {
                             key={index}
                             row={row}
                             index={index}
-                            spliteWaypoints={spliteWaypoints}
+                            splitWaypoints={splitWaypoints}
                             editRow={editRow}
                             setEditRow={setEditRow}
                             waypoints={waypoints}
@@ -421,34 +312,6 @@ useEffect(() => {
                 downloadFile(new File([JSON.stringify(results)], "waypoints.json"));
                 console.log(results);
             }}>Download File</button>
-
-            <h3>Select Source / Destination</h3>
-            <label htmlFor="sourceNode">Source:</label>
-            <WayPointSelection
-                name="sourceNode"
-                id="sourceNode"
-                node={sourceNode}
-                setNode={setSourceNode}
-                waypoints={waypoints}
-                emptyValid={false}
-            />
-            <br />
-            <label htmlFor="destinationNode">Destination:</label>
-            <WayPointSelection
-                name="destinationNode"
-                id="destinationNode"
-                node={destinationNode}
-                setNode={setDestinationNode}
-                waypoints={waypoints}
-                emptyValid={false}
-            />
-
-            {(sourceNode != undefined && destinationNode != undefined) && (
-                <>
-                    <h3>Distance</h3>
-                    <p><u>Bird{"'"}s Eye</u>: {Math.round(100 * calculateDistance({ source: sourceNode, destination: destinationNode })) / 100}</p>
-                </>
-            )}
             <CytoscapeComponent
                 elements={elements}
                 layout={layout}
