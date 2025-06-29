@@ -3,6 +3,10 @@
 import { z } from "zod";
 import { downloadFile } from "@/utils/downloadFile";
 import { ChangeEventHandler, Dispatch, MouseEventHandler, PropsWithChildren, SetStateAction, useCallback, useRef, useState } from "react";
+import CytoscapeComponent from "react-cytoscapejs";
+import cytoscape from "cytoscape";
+import { useMemo } from "react";
+import { useEffect } from "react";
 
 type Node = {
     x: number,
@@ -16,7 +20,7 @@ function calculateDistance({ source, destination }: { source: Node, destination:
 }
 
 const WayPointJsonSchema = z.object({
-    name: z.string(), 
+    name: z.string(),
     x: z.number(),
     y: z.number(),
     z: z.number(),
@@ -29,6 +33,7 @@ const WayPointJsonsSchema = z.array(WayPointJsonSchema);
 type WayPointJsons = z.infer<typeof WayPointJsonsSchema>;
 
 type WayPoint = {
+    id: string,
     name: string,
     x: number,
     y: number,
@@ -36,11 +41,17 @@ type WayPoint = {
     connection?: WayPoint,
 }
 
+
 function deserializeWayPoints(waypoints: WayPointJsons): WayPoint[] {
     const results: WayPoint[] = [];
-    for (const row of waypoints) {
+    for (let index = 0; index < waypoints.length; index++) {
+        const row = waypoints[index];
         results.push({
-            name: row.name, x: row.x, y: row.y, z: row.z,
+            id: `${index}`,
+            name: row.name,
+            x: row.x,
+            y: row.y,
+            z: row.z,
         });
     }
 
@@ -186,7 +197,7 @@ type FileUploaderProps = PropsWithChildren<{
     handleFiles: (files: FileList) => void
 }>;
 
-function FileUploader({handleFiles, children}: FileUploaderProps) {
+function FileUploader({ handleFiles, children }: FileUploaderProps) {
     const hiddenFileInput = useRef<HTMLInputElement>(null);
 
     const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
@@ -217,9 +228,39 @@ function FileUploader({handleFiles, children}: FileUploaderProps) {
     );
 }
 
+const layout: cytoscape.LayoutOptions = {
+    name: "concentric",
+    animate: false,
+    minNodeSpacing: 3,
+    spacingFactor: 3.4,
+};
+
+const stylesheet: cytoscape.StylesheetJson = [
+    {
+        selector: "node[type=\"waypoint\"]",
+        style: {
+            shape: "rectangle",
+        }
+    },
+    {
+        selector: "node",
+        style: {
+            "label": "data(name)",
+            "color": "black",
+            "background-color": "red",
+            "font-weight": "bold",
+        }
+    },
+   {
+    selector: 'edge[weight != 0]', // Selects edges where the 'weight' property is not equal to 0
+    style: {
+      'display': 'none' // Hides the selected edges
+    }
+  },
+];
+
 export default function TeleportTable() {
     const [waypoints, setWaypoints] = useState<WayPoint[]>([]);
-
     const [sourceNode, setSourceNode] = useState<WayPoint | undefined>(waypoints.length > 0 ? waypoints[0] : undefined);
     const [destinationNode, setDestinationNode] = useState<WayPoint | undefined>(waypoints.length > 0 ? waypoints[0] : undefined);
     const [editRow, setEditRow] = useState<number>(-1);
@@ -240,6 +281,96 @@ export default function TeleportTable() {
         setWaypoints([...waypoints]);
         return results;
     }, [waypoints]);
+
+    const elements = useMemo<cytoscape.ElementDefinition[]>(() => {
+        const results: cytoscape.ElementDefinition[] = [];
+        const edges = new Set<string>();
+        for (const source of waypoints) {
+            // WayPoint Nodes
+            results.push({
+                position: {
+                    x: source.x,
+                    y: source.z,
+                },
+                data: {
+                    name: source.name,
+                    id: source.id,
+                },
+            });
+
+            // TODO: Each edge is duplicated...
+            for (const destination of waypoints) {
+                if(source.id === destination.id) {
+                    continue;
+                }
+
+                const weight = calculateDistance({
+                    source: source,
+                    destination: destination,
+                });
+                edges.add(`${source.id}\t${destination.id}\t${weight}`);
+            }
+
+            if (source.connection) {
+                results.push({
+                    data: {
+                        source: source.id,
+                        target: source.connection?.id,
+                        weight: 0,
+                    },
+                })
+            }
+        }
+
+        edges.forEach(rawEdge => {
+            const [source, target, rawWeight] = rawEdge.split("\t");
+            results.push({
+                data: {
+                    source: source,
+                    target: target,
+                    weight: parseFloat(rawWeight),
+                },
+            })
+        });
+
+        return results;
+    }, [waypoints]);
+
+    const cyRef = useRef<cytoscape.Core>(null);
+
+useEffect(() => {
+    if (cyRef.current && sourceNode && destinationNode) {
+      const cy = cyRef.current;
+
+      // Example: Find shortest path from 'a' to 'f'
+      const startNodeId = 'a';
+      const endNodeId = 'f';
+
+      // Remove any previous shortest-path classes
+      cy.elements().removeClass('shortest-path');
+
+      const dijkstra = cy.elements().dijkstra({
+        root: sourceNode.id,
+      });
+
+      const pathToTarget = dijkstra.pathTo(cy.$(destinationNode.id));
+      const distance = dijkstra.distanceTo(cy.$(destinationNode.id));
+
+      if (pathToTarget.length > 0) {
+        console.log(`Shortest path from ${startNodeId} to ${endNodeId}:`, pathToTarget.map(el => el.id()));
+        console.log(`Distance:`, distance);
+
+        // Add the 'shortest-path' class to all elements in the path
+        pathToTarget.addClass('shortest-path');
+
+        // Optional: Fit the view to only the shortest path elements
+        // This makes sure the path is centered and zoomed appropriately
+        cy.fit(pathToTarget, 50); // Add 50px padding
+      } else {
+        console.log(`No path found from ${startNodeId} to ${endNodeId}.`);
+      }
+    }
+  }, [cyRef.current, sourceNode, destinationNode]);
 
     return (
         <>
@@ -272,17 +403,17 @@ export default function TeleportTable() {
             </table>
             <br />
             <FileUploader handleFiles={async (files) => {
-                for(const file of files) {
+                for (const file of files) {
                     const data: unknown = JSON.parse(await file.text());
                     const result = WayPointJsonsSchema.safeParse(data);
-                    if(result.success) {
+                    if (result.success) {
                         const newWaypoints = deserializeWayPoints(result.data);
                         setWaypoints([...waypoints, ...newWaypoints]);
                     }
                 }
             }}>Upload File</FileUploader>
             <button onClick={() => {
-                setWaypoints([...waypoints, { name: "", x: 0, y: 0, z: 0 }]);
+                setWaypoints([...waypoints, { id: `${waypoints.length}`, name: "", x: 0, y: 0, z: 0 }]);
                 setEditRow(waypoints.length);
             }}>Add Row</button>
             <button onClick={() => {
@@ -318,6 +449,15 @@ export default function TeleportTable() {
                     <p><u>Bird{"'"}s Eye</u>: {Math.round(100 * calculateDistance({ source: sourceNode, destination: destinationNode })) / 100}</p>
                 </>
             )}
+            <CytoscapeComponent
+                elements={elements}
+                layout={layout}
+                stylesheet={stylesheet}
+                autolock={true}
+                style={{ height: "80vh", border: "solid black" }}
+                wheelSensitivity = {2.5}
+                cy={(cy) => { cyRef.current = cy }}
+            />
         </>
     )
 }
