@@ -17,6 +17,7 @@ export type WayPointRowProps = {
     setSourceNode: (waypoint: WayPoint | undefined) => void,
     destinationNode: WayPoint | undefined,
     setDestinationNode: (waypoint: WayPoint | undefined) => void,
+    showDebugInfo: boolean,
 }
 
 export default function WayPointRow({ 
@@ -32,6 +33,7 @@ export default function WayPointRow({
     setSourceNode,
     destinationNode,
     setDestinationNode,
+    showDebugInfo
 }: WayPointRowProps) {
     if (editRow === index) {
         return (
@@ -42,6 +44,7 @@ export default function WayPointRow({
                         setWaypoints([...waypoints]);
                     }} />
                 </td>
+                {showDebugInfo && <td>{row.id}</td>}
                 <td>
                     <input value={row.x} onChange={(e) => {
                         const value = parseInt(e.target.value);
@@ -84,8 +87,8 @@ export default function WayPointRow({
                         waypoints={waypoints}
                         emptyValid={true}
                     />
-
                 </td>
+                {showDebugInfo && <td>{row.connection?.id}</td>} 
                 <td>
                     <button onClick={() => splitWaypoints(index, 1)}>remove</button>
                     <button onClick={() => setEditRow(-1)}>save</button>
@@ -100,10 +103,12 @@ export default function WayPointRow({
     return (
         <tr>
             <td>{isSource || isDestination ? <b>{row.name}</b>: <span>{row.name}</span>}</td>
+            {showDebugInfo && <td>{isSource || isDestination ? <b>{row.name}</b>: <span>{row.id}</span>}</td>}
             <td>{row.x}</td>
             <td>{row.y}</td>
             <td>{row.z}</td>
             <td>{row.connection?.name}</td>
+            {showDebugInfo && <td>{row.connection?.id}</td>}
             <td>
                 <button onClick={() => setEditRow(index)}>edit</button>
                 <button onClick={() => onZoom(row)}>zoom</button>

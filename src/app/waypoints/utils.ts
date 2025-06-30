@@ -78,7 +78,8 @@ export function stringifyWayPoint(waypoint: WayPoint) {
  * Type for a single step in the calculated path.
  */
 export type PathStep = {
-    from: string;
-    to: string;
+    id: string,
+    from: cytoscape.NodeSingular;
+    to: cytoscape.NodeSingular;
     distance: number;
 };

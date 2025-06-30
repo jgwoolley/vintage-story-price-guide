@@ -5,11 +5,11 @@ import { useCallback, useRef, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
+import useWayPointStylesheet from "./useWayPointStylesheet";
 import { calculateDistance, PathStep, WayPoint } from "./utils";
 import WayPointActiveButtons from "./WayPointActiveButtons";
 import WayPointRow from "./WayPointRow";
 import WayPointSelection from "./WayPointSelection";
-import useWayPointStylesheet from "./useWayPointStylesheet";
 
 export default function WayPointComponent() {
     const [waypoints, setWaypoints] = useState<WayPoint[]>([]);
@@ -19,6 +19,7 @@ export default function WayPointComponent() {
     const [editRow, setEditRow] = useState<number>(-1);
     const [pathSteps, setPathSteps] = useState<PathStep[]>([]); // New state for path details
     const cyRef = useRef<cytoscape.Core | null>(null); // Ref to hold the Cytoscape instance
+    const showDebugInfo = false;
 
     // Callback to remove waypoints
     const splitWaypoints = useCallback((start: number, deleteCount?: number) => {
@@ -49,11 +50,10 @@ export default function WayPointComponent() {
         setDestinationNode,
         setPathSteps,
         waypoints,
-        setWaypoints,
     });
 
     const stylesheet = useWayPointStylesheet();
-    
+
     return (
         <div className="p-4 space-y-4 font-sans text-gray-800 bg-gray-50 min-h-screen">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">WayPoint Management</h3>
@@ -64,10 +64,12 @@ export default function WayPointComponent() {
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waypoint Name</th>
+                            {showDebugInfo && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waypoint Id</th>}
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">X</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Y</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Z</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Connection</th>
+                            {showDebugInfo && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Connection Id</th>}
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -93,6 +95,7 @@ export default function WayPointComponent() {
                                 setDestinationNode={setDestinationNode}
                                 sourceNode={sourceNode}
                                 setSourceNode={setSourceNode}
+                                showDebugInfo={showDebugInfo}
                             />
                         ))}
                     </tbody>
@@ -101,10 +104,10 @@ export default function WayPointComponent() {
 
             {/* Action Buttons */}
             <h4>WayPoint Actions</h4>
-            <WayPointActiveButtons 
-                waypoints={[]} 
-                setWaypoints={setWaypoints} 
-                setEditRow={setEditRow}            
+            <WayPointActiveButtons
+                waypoints={[]}
+                setWaypoints={setWaypoints}
+                setEditRow={setEditRow}
             />
 
             <h4>Select Source / Destination Waypoints</h4>
@@ -135,25 +138,58 @@ export default function WayPointComponent() {
                 </div>
             </div>
 
-            <h3>Steps</h3>
-            <p>This is the path you will want to travel.</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>from</th>
-                        <th>to</th>
-                        <th>distance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {pathSteps?.map((x, index) => (<tr key={index}>
-                        <td>{x.from}</td>
-                        <td>{x.to}</td>
-                        <td>{Math.round(x.distance * 10) / 10}</td>
-                    </tr>))}
-                </tbody>
-            </table>
-            <p>This would be the bird's eye distance: {(sourceNode != undefined && destinationNode != undefined ) ? Math.round(calculateDistance({source: sourceNode, destination: destinationNode})): "N/A"}</p>
+            {(sourceNode != undefined && destinationNode != undefined && pathSteps != undefined) && (
+                <>
+                    <h3>Steps</h3>
+                    <p>This is the path you will want to travel.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                {showDebugInfo && <th>edge id</th>}
+                                <th>from</th>
+                                {showDebugInfo && <th>from id</th>}
+                                <th>to</th>
+                                {showDebugInfo && <th>to id</th>}
+                                <th>distance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {pathSteps.map((x, index) => (<tr key={index}>
+                                {showDebugInfo && <td>{x.id}</td>}
+                                <td>{x.from.data("name")}</td>
+                                {showDebugInfo && <td>{x.from.id()}</td>}
+                                <td>{x.to.data("name")}</td>
+                                {showDebugInfo && <td>{x.to.id()}</td>}
+                                <td>{Math.round(x.distance * 10) / 10}</td>
+                            </tr>))}
+                            <tr>
+                                <td><b>Total</b></td>                         
+                                <td><b></b></td>
+                                {showDebugInfo && (
+                                    <>                                
+                                        <td><b></b></td>
+                                        <td><b></b></td>
+                                        <td><b></b></td>
+                                    </>
+                                )}
+                                <td><b>{pathSteps.reduce((acc, obj) => acc + obj.distance, 0)}</b></td>
+                            </tr>
+                            <tr>
+                                <td><b>bird&#39;s eye distance</b></td>
+                                <td><b></b></td>
+                                {showDebugInfo && (
+                                    <>                                
+                                    <td><b></b></td>
+                                        <td><b></b></td>
+                                        <td><b></b></td>
+                                    </>
+                                )}
+                                <td><b>{Math.round(calculateDistance({ source: sourceNode, destination: destinationNode }))}</b></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </>
+            )}
 
             <h3>Graph</h3>
             {/* Cytoscape Graph Visualization */}
@@ -170,6 +206,22 @@ export default function WayPointComponent() {
                     autolock={true}
                     cy={(cy) => {
                         cyRef.current = cy; // Store Cytoscape instance
+                        cy.on('select', 'node', function (evt) { // Or 'click' for desktop
+                            const node = evt.target;
+                            console.log({
+                                event: 'select node',
+                                nodeid: node.id(),
+                                nodedata: node.data(),
+                            });
+                        })
+                        cy.on('select', 'edge', function (evt) { // Or 'click' for desktop
+                            const edge = evt.target;
+                             console.log({
+                                event: 'select edge',
+                                nodeid: edge.id(),
+                                nodedata: edge.data(),
+                            });
+                        });
                     }}
                 />
             </div>

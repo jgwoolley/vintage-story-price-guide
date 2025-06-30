@@ -10,10 +10,10 @@ export type UseWayPointGraphProps = {
     setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     setPathSteps: Dispatch<SetStateAction<PathStep[]>>,
     waypoints: WayPoint[],
-    setWaypoints: Dispatch<SetStateAction<WayPoint[]>>,
+    // setWaypoints: Dispatch<SetStateAction<WayPoint[]>>,
 };
 
-export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode, setDestinationNode, setPathSteps, waypoints, setWaypoints}: UseWayPointGraphProps) {
+export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode, setDestinationNode, setPathSteps, waypoints }: UseWayPointGraphProps) {
         /**
      * useEffect hook for handling shortest path highlighting and edge visibility.
      */
@@ -44,28 +44,11 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
             const path = aStarResult.path;
 
             if (path && path.length > 0) {
-                const edgesToHighlight = path.edges();
-
-                // Remove hidden-edge class and add highlight class for path elements
-                edgesToHighlight.removeClass('hidden-edge').addClass('highlighted-path');
                 path.nodes().addClass('highlighted-node');
 
                 // Ensure source and destination nodes are specifically highlighted
                 cy.getElementById(sourceNode.id).addClass('source-node');
                 cy.getElementById(destinationNode.id).addClass('highlighted-node');
-
-                for(let i = 0; i < edgesToHighlight.length; i++) {
-                    const edge = edgesToHighlight[i];
-                    edge.addClass('highlighted-path');
-                    console.log({
-                        edge: edge.data(), 
-                        source: edge.source().data(), 
-                        target: edge.target().data(),
-                        style: edge.style
-                    });
-
-                    cy.getElementById(edge.id()).addClass('highlighted-path');;
-                }
 
                 // Populate path steps for the table
                 const currentPathSteps: PathStep[] = [];
@@ -73,13 +56,14 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
                     const fromNode = path.nodes()[i];
                     const toNode = path.nodes()[i + 1];
                     const edges = fromNode.edgesWith(toNode);
-
+                    edges.removeClass('hidden-edge').addClass('highlighted-path');
                     if (edges.length > 0) {
                         edges.forEach(edge => {
                             currentPathSteps.push({
-                                from: fromNode.data('name'),
-                                to: toNode.data('name'),
-                                distance: edge.data('weight') || 0,
+                                id: edge.id(),
+                                from: fromNode,
+                                to: toNode,
+                                distance: edge.data('weight') || -1,
                             });
                         }) 
                     }
@@ -99,7 +83,7 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
             cy.edges("edge[weight != 0]").removeClass('hidden-edge');
             setPathSteps([]);
         }
-    }, [sourceNode, destinationNode, waypoints]); // Re-run when these dependencies change
+    }, [cy, setPathSteps, sourceNode, destinationNode, waypoints]); // Re-run when these dependencies change
 
     /**
      * useEffect hook for setting initial source/destination nodes.
@@ -118,5 +102,5 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
             setSourceNode(undefined);
             setDestinationNode(undefined);
         }
-    }, [waypoints, sourceNode, destinationNode]); // Dependencies for this effect
+    }, [waypoints, sourceNode, setSourceNode, destinationNode, setDestinationNode]); // Dependencies for this effect
 }
