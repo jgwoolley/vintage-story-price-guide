@@ -2,7 +2,8 @@
 
 import cytoscape from "cytoscape";
 import { useCallback, useRef, useState } from "react";
-import CytoscapeComponent from "react-cytoscapejs";
+// import CytoscapeComponent from "react-cytoscapejs";
+import CytoscapeComponent from "@/components/CytoscapeComponent";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
 import useWayPointStylesheet from "./useWayPointStylesheet";
@@ -54,10 +55,30 @@ export default function WayPointComponent() {
 
     const stylesheet = useWayPointStylesheet();
 
+    const cyFunction = useCallback<((cy: cytoscape.Core) => void)>((cy) => {
+        cyRef.current = cy; // Store Cytoscape instance
+        cy.on('select', 'node', function (evt) { // Or 'click' for desktop
+            const node = evt.target;
+            console.log({
+                event: 'select node',
+                nodeid: node.id(),
+                nodedata: node.data(),
+            });
+        })
+        cy.on('select', 'edge', function (evt) { // Or 'click' for desktop
+            const edge = evt.target;
+            console.log({
+                event: 'select edge',
+                nodeid: edge.id(),
+                nodedata: edge.data(),
+            });
+        });
+    }, [])
+
     return (
         <div className="p-4 space-y-4 font-sans text-gray-800 bg-gray-50 min-h-screen">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">WayPoint Management</h3>
-
+            <h3>Graph</h3>
             {/* Waypoint Table */}
             <div className="overflow-x-auto bg-white rounded-lg shadow">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -138,92 +159,93 @@ export default function WayPointComponent() {
                 </div>
             </div>
 
-            {(sourceNode != undefined && destinationNode != undefined && pathSteps != undefined) && (
-                <>
-                    <h3>Steps</h3>
-                    <p>This is the path you will want to travel.</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                {showDebugInfo && <th>edge id</th>}
-                                <th>from</th>
-                                {showDebugInfo && <th>from id</th>}
-                                <th>to</th>
-                                {showDebugInfo && <th>to id</th>}
-                                <th>distance</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {pathSteps.map((x, index) => (<tr key={index}>
-                                {showDebugInfo && <td>{x.id}</td>}
-                                <td>{x.from.data("name")}</td>
-                                {showDebugInfo && <td>{x.from.id()}</td>}
-                                <td>{x.to.data("name")}</td>
-                                {showDebugInfo && <td>{x.to.id()}</td>}
-                                <td>{Math.round(x.distance * 10) / 10}</td>
-                            </tr>))}
-                            <tr>
-                                <td><b>Total</b></td>                         
-                                <td><b></b></td>
-                                {showDebugInfo && (
-                                    <>                                
-                                        <td><b></b></td>
-                                        <td><b></b></td>
-                                        <td><b></b></td>
-                                    </>
-                                )}
-                                <td><b>{pathSteps.reduce((acc, obj) => acc + obj.distance, 0)}</b></td>
-                            </tr>
-                            <tr>
-                                <td><b>bird&#39;s eye distance</b></td>
-                                <td><b></b></td>
-                                {showDebugInfo && (
-                                    <>                                
-                                    <td><b></b></td>
-                                        <td><b></b></td>
-                                        <td><b></b></td>
-                                    </>
-                                )}
-                                <td><b>{Math.round(calculateDistance({ source: sourceNode, destination: destinationNode }))}</b></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </>
-            )}
 
-            <h3>Graph</h3>
-            {/* Cytoscape Graph Visualization */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 mt-4">
-                <CytoscapeComponent
-                    elements={elements}
-                    stylesheet={stylesheet}
-                    minZoom={0.5}
-                    maxZoom={2}
-                    boxSelectionEnabled={false} // Disable box selection for cleaner interaction
-                    wheelSensitivity={0.5} // Adjust zoom sensitivity
-                    className="w-full" // Ensure it takes full width
-                    style={{ height: "80vh", minHeight: "400px" }} // Responsive height
-                    autolock={true}
-                    cy={(cy) => {
-                        cyRef.current = cy; // Store Cytoscape instance
-                        cy.on('select', 'node', function (evt) { // Or 'click' for desktop
-                            const node = evt.target;
-                            console.log({
-                                event: 'select node',
-                                nodeid: node.id(),
-                                nodedata: node.data(),
-                            });
-                        })
-                        cy.on('select', 'edge', function (evt) { // Or 'click' for desktop
-                            const edge = evt.target;
-                             console.log({
-                                event: 'select edge',
-                                nodeid: edge.id(),
-                                nodedata: edge.data(),
-                            });
-                        });
-                    }}
-                />
+            <div style={{
+                display: "flex",
+                position: "relative",
+                height: "100vh",
+                width: "100vw",
+                overflow: "hidden",
+            }}>
+                <div style={{
+                    flex: 1,
+                    border: "solid #ddd",
+                    display: "flex",
+                    overflow: "hidden",
+                }}>
+                    <CytoscapeComponent
+                        elements={elements}
+                        stylesheet={stylesheet}
+                        minZoom={0.5}
+                        maxZoom={2}
+                        boxSelectionEnabled={false} // Disable box selection for cleaner interaction
+                        wheelSensitivity={0.5} // Adjust zoom sensitivity
+                        className="w-full" // Ensure it takes full width
+                        style={{ width: "100%", height: "100%", border: "solid #ddd" }} // Responsive height
+                        autolock={true}
+                        cy={cyFunction}
+                    />
+                </div>
+
+                <div style={{
+                    flex: 1,
+                    border: "solid #ddd",
+                    padding: "10px",
+                    overflowY: "auto",
+                }}>
+                    {(sourceNode != undefined && destinationNode != undefined && pathSteps != undefined) && (
+                        <>
+                            <h3>Steps</h3>
+                            <p>This is the path you will want to travel.</p>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        {showDebugInfo && <th>edge id</th>}
+                                        <th>from</th>
+                                        {showDebugInfo && <th>from id</th>}
+                                        <th>to</th>
+                                        {showDebugInfo && <th>to id</th>}
+                                        <th>distance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pathSteps.map((x, index) => (<tr key={index}>
+                                        {showDebugInfo && <td>{x.id}</td>}
+                                        <td>{x.from.data("name")}</td>
+                                        {showDebugInfo && <td>{x.from.id()}</td>}
+                                        <td>{x.to.data("name")}</td>
+                                        {showDebugInfo && <td>{x.to.id()}</td>}
+                                        <td>{Math.round(x.distance * 10) / 10}</td>
+                                    </tr>))}
+                                    <tr>
+                                        <td><b>Total</b></td>
+                                        <td><b></b></td>
+                                        {showDebugInfo && (
+                                            <>
+                                                <td><b></b></td>
+                                                <td><b></b></td>
+                                                <td><b></b></td>
+                                            </>
+                                        )}
+                                        <td><b>{pathSteps.reduce((acc, obj) => acc + obj.distance, 0)}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>bird&#39;s eye distance</b></td>
+                                        <td><b></b></td>
+                                        {showDebugInfo && (
+                                            <>
+                                                <td><b></b></td>
+                                                <td><b></b></td>
+                                                <td><b></b></td>
+                                            </>
+                                        )}
+                                        <td><b>{Math.round(calculateDistance({ source: sourceNode, destination: destinationNode }))}</b></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

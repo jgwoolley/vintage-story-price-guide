@@ -23,9 +23,6 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.1.0
-      react-cytoscapejs:
-        specifier: ^2.0.0
-        version: 2.0.0(cytoscape@3.2.19)(react@19.1.0)
       react-dom:
         specifier: ^19.0.0
         version: 19.1.0(react@19.1.0)
@@ -54,9 +51,6 @@ importers:
       '@types/react':
         specifier: ^19
         version: 19.1.8
-      '@types/react-cytoscapejs':
-        specifier: ^1.2.5
-        version: 1.2.5
       '@types/react-dom':
         specifier: ^19
         version: 19.1.6(@types/react@19.1.8)
@@ -488,9 +482,6 @@ packages:
 
   '@types/pako@2.0.3':
     resolution: {integrity: sha512-bq0hMV9opAcrmE0Byyo0fY3Ew4tgOevJmQ9grUhpXQhYfyLJ1Kqg3P33JT5fdbT2AjeAjR51zqqVjAL/HMkx7Q==}
-
-  '@types/react-cytoscapejs@1.2.5':
-    resolution: {integrity: sha512-G9VcGQOlER3njklOu5D0FDGHYfkQJ3yEL95kGbgI/MR08N5dQ7IbLSZI8WqaB4fG0zOURIg0BUtOCrbE5HRZEQ==}
 
   '@types/react-dom@19.1.6':
     resolution: {integrity: sha512-4hOiT/dwO8Ko0gV1m/TJZYk3y0KBnY9vzDh7W+DH17b2HFSOGgdj33dhihPeuy3l0q23+4e+hoXHV6hCC4dCXw==}
@@ -1599,12 +1590,6 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  react-cytoscapejs@2.0.0:
-    resolution: {integrity: sha512-t3SSl1DQy7+JQjN+8QHi1anEJlM3i3aAeydHTsJwmjo/isyKK7Rs7oCvU6kZsB9NwZidzZQR21Vm2PcBLG/Tjg==}
-    peerDependencies:
-      cytoscape: ^3.2.19
-      react: '>=15.0.0'
-
   react-dom@19.1.0:
     resolution: {integrity: sha512-Xs1hdnE+DyKgeHJeJznQmYMIBG3TKIHJJT95Q58nHLSrElKlGQqDTR2HQ9fx5CN/Gk6Vh/kupBTDLU11/nDk/g==}
     peerDependencies:
@@ -2235,11 +2220,6 @@ snapshots:
       undici-types: 6.21.0
 
   '@types/pako@2.0.3': {}
-
-  '@types/react-cytoscapejs@1.2.5':
-    dependencies:
-      '@types/cytoscape': 3.2.9
-      '@types/react': 19.1.8
 
   '@types/react-dom@19.1.6(@types/react@19.1.8)':
     dependencies:
@@ -3509,12 +3489,6 @@ snapshots:
   punycode@2.3.1: {}
 
   queue-microtask@1.2.3: {}
-
-  react-cytoscapejs@2.0.0(cytoscape@3.2.19)(react@19.1.0):
-    dependencies:
-      cytoscape: 3.2.19
-      prop-types: 15.8.1
-      react: 19.1.0
 
   react-dom@19.1.0(react@19.1.0):
     dependencies:
