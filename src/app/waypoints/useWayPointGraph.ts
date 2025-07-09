@@ -26,12 +26,12 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
         cy.elements().removeClass('highlighted-path highlighted-node source-node highlighted-target hidden-edge');
 
         // If a source and destination are selected and they are different
-        if (sourceNode != undefined && destinationNode != undefined && sourceNode.id !== destinationNode.id) {
+        if (sourceNode != undefined && destinationNode != undefined && sourceNode.data.id !== destinationNode.data.id) {
             cy.edges().addClass('hidden-edge'); // Temporarily hide all edges for path highlighting
 
             const aStarResult = cy.elements().aStar({
-                root: `#${sourceNode.id}`,
-                goal: `#${destinationNode.id}`,
+                root: `#${sourceNode.data.id}`,
+                goal: `#${destinationNode.data.id}`,
                 weight: edges => {
                     const edge = edges[0];
                     const edgeWeight = edge.data('weight');
@@ -47,8 +47,8 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
                 path.nodes().addClass('highlighted-node');
 
                 // Ensure source and destination nodes are specifically highlighted
-                cy.getElementById(sourceNode.id).addClass('source-node');
-                cy.getElementById(destinationNode.id).addClass('highlighted-node');
+                cy.getElementById(sourceNode.data.id).addClass('source-node');
+                cy.getElementById(destinationNode.data.id).addClass('highlighted-node');
 
                 // Populate path steps for the table
                 const currentPathSteps: PathStep[] = [];
@@ -73,9 +73,9 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
             } else {
                 console.log("No path found between selected nodes. Showing all edges.");
                 cy.edges("edge[weight != 0]").removeClass('hidden-edge'); // If no path, show all edges again
-                cy.getElementById(sourceNode.id).addClass('source-node');
+                cy.getElementById(sourceNode.data.id).addClass('source-node');
                 if (destinationNode) {
-                    cy.getElementById(destinationNode.id).addClass('highlighted-node');
+                    cy.getElementById(destinationNode.data.id).addClass('highlighted-node');
                 }
             }
         } else {

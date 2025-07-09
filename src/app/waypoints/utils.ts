@@ -1,11 +1,16 @@
 import { z } from "zod";
 
 export const WayPointJsonSchema = z.object({
-    name: z.string(),
-    x: z.number(),
-    y: z.number(),
-    z: z.number(),
-    connection: z.number().optional(),
+    data: z.object({ 
+        id: z.string(),
+        label: z.string(),
+        height: z.number(),
+    }),
+    position: z.object({
+        x: z.number(),
+        y: z.number(),
+    }),
+    connection: z.string().optional(),
 });
 
 export type WayPointJson = z.infer<typeof WayPointJsonSchema>;
@@ -13,21 +18,25 @@ export const WayPointJsonsSchema = z.array(WayPointJsonSchema);
 export type WayPointJsons = z.infer<typeof WayPointJsonsSchema>;
 
 export type WayPoint = {
-    id: string,
-    name: string,
-    x: number,
-    y: number,
-    z: number,
+    data: {
+        id: string,
+        label: string,
+        height: number,
+    },
+    position: {
+        x: number,
+        y: number, // actually z
+    },
     connection?: WayPoint,
 }
 
 export function calculateDistance({ source, destination }: { source: WayPoint, destination: WayPoint }) {
-    if(source.connection?.id === destination.id || destination.connection?.id === source.id) {
+    if(source.connection?.data.id === destination.data.id || destination.connection?.data.id === source.data.id) {
         return 0;
     }
 
-    const dx = source.x - destination.x;
-    const dz = source.z - destination.z;
+    const dx = source.position.x - destination.position.x;
+    const dz = source.position.y - destination.position.y;
     return Math.sqrt(dx * dx + dz * dz);
 }
 
@@ -35,19 +44,21 @@ export function deserializeWayPoints(waypoints: WayPointJsons): WayPoint[] {
     const results: WayPoint[] = [];
     for (let index = 0; index < waypoints.length; index++) {
         const row = waypoints[index];
-        results.push({
-            id: `${index}`,
-            name: row.name,
-            x: row.x,
-            y: row.y,
-            z: row.z,
-        });
+        const newRow: WayPoint = {
+            position: row.position,
+            data: {
+                id: row.data.id,
+                height: row.data.height,
+                label: row.data.label,
+            },
+        };
+        results.push(newRow);
     }
 
     for (let i = 0; i < results.length; i++) {
         const { connection } = waypoints[i];
         if (connection != undefined) {
-            results[i].connection = results[connection];
+            results[i].connection = results.find(x => x.data.id === connection);
         }
     }
 
@@ -57,21 +68,27 @@ export function deserializeWayPoints(waypoints: WayPointJsons): WayPoint[] {
 export function serializeWayPoints(waypoints: WayPoint[]) {
     const results: WayPointJson[] = [];
     for (const row of waypoints) {
-        const connection = waypoints.findIndex(obj => obj === row.connection);
-        results.push({
-            name: row.name,
-            x: row.x,
-            y: row.y,
-            z: row.z,
-            connection: connection === -1 ? undefined : connection,
-        });
+        const newRow: WayPointJson = {
+            data: {
+                id: row.data.id,
+                label: row.data.label,
+                height: row.data.height,
+            },
+            position: {
+                x: row.position.x,
+                y: row.position.y,
+            },
+            connection: row.connection?.data.id,
+        }
+
+        results.push(newRow);
     }
 
     return results;
 }
 
 export function stringifyWayPoint(waypoint: WayPoint) {
-    return `${waypoint.name} (${waypoint.x}, ${waypoint.y}, ${waypoint.z})`;
+    return `${waypoint.data.label} (${waypoint.position.x}, ${waypoint.data.height}, ${waypoint.position.y})`;
 }
 
 /**

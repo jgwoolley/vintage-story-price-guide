@@ -17,14 +17,8 @@ export default function useWayPointEdges({ waypoints }: UseWayPointEdgesProps) {
         for (const waypoint of waypoints) {
             results.push({
                 group: 'nodes', // Explicitly define group
-                position: {
-                    x: waypoint.x,
-                    y: waypoint.z, // Assuming z-coordinate maps to y-axis in 2D graph
-                },
-                data: {
-                    name: waypoint.name,
-                    id: waypoint.id,
-                },
+                position: waypoint.position,
+                data: waypoint.data,
             });
         }
 
@@ -43,13 +37,13 @@ export default function useWayPointEdges({ waypoints }: UseWayPointEdgesProps) {
                 // Only add an edge if it has a valid, non-infinite distance (0 for teleporters included)
                 if (weight !== Infinity && !isNaN(weight)) {
                     // Create a canonical edge ID to avoid duplicates (e.g., ensure edge-A-B is same as edge-B-A)
-                    const edgeId = [source.id, destination.id].sort().join('-'); // Sort IDs for consistent ID
+                    const edgeId = [source.data.id, destination.data.id].sort().join('-'); // Sort IDs for consistent ID
                     if (!addedEdges.has(edgeId)) { // Check if this unique edge has already been added
                         results.push({
                             group: 'edges', // Explicitly define group
                             data: {
-                                source: source.id,
-                                target: destination.id,
+                                source: source.data.id,
+                                target: destination.data.id,
                                 weight: weight,
                                 id: edgeId,
                             },

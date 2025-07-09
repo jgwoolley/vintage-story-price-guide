@@ -7,7 +7,7 @@ export default function useWayPointStylesheet(): cytoscape.Stylesheet[] {
         selector: 'node',
         style: {
             'background-color': '#666',
-            label: 'data(name)',
+            label: 'data(label)',
             // 'font-size': '12px',
             // color: '#fff',
             // 'text-halign': 'center',

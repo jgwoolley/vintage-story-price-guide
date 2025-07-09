@@ -39,39 +39,39 @@ export default function WayPointRow({
         return (
             <tr>
                 <td>
-                    <input value={row.name} onChange={(e) => {
-                        row.name = e.target.value;
+                    <input value={row.data.label} onChange={(e) => {
+                        row.data.label = e.target.value;
                         setWaypoints([...waypoints]);
                     }} />
                 </td>
-                {showDebugInfo && <td>{row.id}</td>}
+                {showDebugInfo && <td>{row.data.id}</td>}
                 <td>
-                    <input value={row.x} onChange={(e) => {
+                    <input value={row.position.x} onChange={(e) => {
                         const value = parseInt(e.target.value);
                         if(value == undefined || isNaN(value)) {
                             return;
                         }
-                        row.x = value;
+                        row.position.x = value;
                         setWaypoints([...waypoints]);
                     }} />
                 </td>
                 <td>
-                    <input value={row.y} onChange={(e) => {
+                    <input value={row.data.height} onChange={(e) => {
                         const value = parseInt(e.target.value);
                         if(value == undefined || isNaN(value)) {
                             return;
                         }
-                        row.y = value;
+                        row.data.height = value;
                         setWaypoints([...waypoints]);
                     }} />
                 </td>
                 <td>
-                    <input value={row.z} onChange={(e) => {
+                    <input value={row.position.y} onChange={(e) => {
                         const value = parseInt(e.target.value);
                         if(value == undefined || isNaN(value)) {
                             return;
                         }
-                        row.z = value;
+                        row.position.y = value;
                         setWaypoints([...waypoints]);
                     }} />
                 </td>
@@ -88,7 +88,7 @@ export default function WayPointRow({
                         emptyValid={true}
                     />
                 </td>
-                {showDebugInfo && <td>{row.connection?.id}</td>} 
+                {showDebugInfo && <td>{row.connection?.data.id}</td>} 
                 <td>
                     <button onClick={() => splitWaypoints(index, 1)}>remove</button>
                     <button onClick={() => setEditRow(-1)}>save</button>
@@ -97,18 +97,18 @@ export default function WayPointRow({
         )
     }
 
-    const isSource = sourceNode?.id === row.id;
-    const isDestination = destinationNode?.id === row.id;
+    const isSource = sourceNode?.data.id === row.data.id;
+    const isDestination = destinationNode?.data.id === row.data.id;
 
     return (
         <tr>
-            <td>{isSource || isDestination ? <b>{row.name}</b>: <span>{row.name}</span>}</td>
-            {showDebugInfo && <td>{isSource || isDestination ? <b>{row.name}</b>: <span>{row.id}</span>}</td>}
-            <td>{row.x}</td>
-            <td>{row.y}</td>
-            <td>{row.z}</td>
-            <td>{row.connection?.name}</td>
-            {showDebugInfo && <td>{row.connection?.id}</td>}
+            <td>{isSource || isDestination ? <b>{row.data.label}</b>: <span>{row.data.label}</span>}</td>
+            {showDebugInfo && <td>{isSource || isDestination ? <b>{row.data.label}</b>: <span>{row.data.id}</span>}</td>}
+            <td>{row.position.x}</td>
+            <td>{row.data.height}</td>
+            <td>{row.position.y}</td>
+            <td>{row.connection?.data.label}</td>
+            {showDebugInfo && <td>{row.connection?.data.id}</td>}
             <td>
                 <button onClick={() => setEditRow(index)}>edit</button>
                 <button onClick={() => onZoom(row)}>zoom</button>

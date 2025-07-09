@@ -2,7 +2,6 @@
 
 import cytoscape from "cytoscape";
 import { useCallback, useRef, useState } from "react";
-// import CytoscapeComponent from "react-cytoscapejs";
 import CytoscapeComponent from "@/components/CytoscapeComponent";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
@@ -10,7 +9,6 @@ import useWayPointStylesheet from "./useWayPointStylesheet";
 import { calculateDistance, PathStep, WayPoint } from "./utils";
 import WayPointActiveButtons from "./WayPointActiveButtons";
 import WayPointRow from "./WayPointRow";
-import WayPointSelection from "./WayPointSelection";
 
 export default function WayPointComponent() {
     const [waypoints, setWaypoints] = useState<WayPoint[]>([]);
@@ -30,10 +28,10 @@ export default function WayPointComponent() {
 
         results.forEach(row => {
             // If the removed waypoint was the source or destination, clear it
-            if (row.id === sourceNode?.id) { // Compare by ID for object equality
+            if (row.data.id === sourceNode?.data.id) { // Compare by ID for object equality
                 setSourceNode(undefined);
             }
-            if (row.id === destinationNode?.id) { // Compare by ID
+            if (row.data.id === destinationNode?.data.id) { // Compare by ID
                 setDestinationNode(undefined);
             }
         });
@@ -97,7 +95,7 @@ export default function WayPointComponent() {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {waypoints.map((row, index) => (
                             <WayPointRow
-                                key={row.id} // Use row.id for key if it's unique
+                                key={row.data.id} // Use row.id for key if it's unique
                                 row={row}
                                 index={index}
                                 splitWaypoints={splitWaypoints}
@@ -110,7 +108,7 @@ export default function WayPointComponent() {
                                     if (cy == undefined) {
                                         return;
                                     }
-                                    cy.fit(cy.$id(waypoint.id));
+                                    cy.fit(cy.$id(waypoint.data.id));
                                 }}
                                 destinationNode={destinationNode}
                                 setDestinationNode={setDestinationNode}
@@ -126,39 +124,12 @@ export default function WayPointComponent() {
             {/* Action Buttons */}
             <h4>WayPoint Actions</h4>
             <WayPointActiveButtons
-                waypoints={[]}
+                waypoints={waypoints}
                 setWaypoints={setWaypoints}
                 setEditRow={setEditRow}
             />
 
-            <h4>Select Source / Destination Waypoints</h4>
-
-            {/* Source and Destination Selection */}
-            <div className="flex gap-4 mt-4">
-                <div className="bg-white p-4 rounded-lg shadow flex-1">
-                    <label htmlFor="sourceNode" className="block text-sm font-medium text-gray-700 mb-1">Source Waypoint: </label>
-                    <WayPointSelection
-                        name="sourceNode"
-                        id="sourceNode"
-                        node={sourceNode}
-                        setNode={setSourceNode}
-                        waypoints={waypoints}
-                        emptyValid={true}
-                    />
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow flex-1">
-                    <label htmlFor="destinationNode" className="block text-sm font-medium text-gray-700 mb-1">Destination Waypoint: </label>
-                    <WayPointSelection
-                        name="destinationNode"
-                        id="destinationNode"
-                        node={destinationNode}
-                        setNode={setDestinationNode}
-                        waypoints={waypoints}
-                        emptyValid={true}
-                    />
-                </div>
-            </div>
-
+            <h4>Graph</h4>
 
             <div style={{
                 display: "flex",
