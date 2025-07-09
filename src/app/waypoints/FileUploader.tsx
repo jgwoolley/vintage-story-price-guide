@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from "@mui/material";
 import { ChangeEventHandler, MouseEventHandler, PropsWithChildren, useRef } from "react";
 
 export type FileUploaderProps = PropsWithChildren<{
@@ -24,9 +25,9 @@ export default function FileUploader({ handleFiles, children }: FileUploaderProp
 
     return (
         <>
-            <button onClick={handleClick}>
+            <Button onClick={handleClick}>
                 {children}
-            </button>
+            </Button>
             <input
                 type="file"
                 onChange={handleChange}

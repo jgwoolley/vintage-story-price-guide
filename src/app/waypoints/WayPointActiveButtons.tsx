@@ -1,23 +1,39 @@
 'use client';
 
-import { Dispatch, SetStateAction, useCallback } from "react";
-import FileUploader from "./FileUploader";
-import { deserializeWayPoints, WayPointJsonsSchema, serializeWayPoints, WayPoint } from "./utils";
 import { downloadFile } from "@/utils/downloadFile";
+import { Button, ButtonGroup } from "@mui/material";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import FileUploader from "./FileUploader";
+import { deserializeWayPoints, serializeWayPoints, WayPoint, WayPointJsonsSchema } from "./utils";
 
 export type WayPointActiveButtonsProps = {
+    sourceNode: WayPoint | undefined,
+    setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    destinationNode: WayPoint | undefined,
+    setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     waypoints: WayPoint[],
     setWaypoints: Dispatch<SetStateAction<WayPoint[]>>,
-    setEditRow: Dispatch<SetStateAction<number>>,
 }
 
-export default function WayPointActiveButtons({ waypoints, setWaypoints, setEditRow }: WayPointActiveButtonsProps) {
+export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, setSourceNode, destinationNode, setDestinationNode }: WayPointActiveButtonsProps) {
+    const [createdTime, setCreatedTime] = useState<Date>();
+    const [modifiedTime, setModifiedTime] = useState<Date>();
+
     const uploadWaypoints = useCallback<(files: FileList) => void>(async (files: FileList) => {
         for (const file of files) {
             try {
                 const data: unknown = JSON.parse(await file.text());
                 const result = WayPointJsonsSchema.safeParse(data);
+                
                 if (result.success) {
+                    if(createdTime != undefined) {
+                        setCreatedTime(result.data.createdTime);
+                    }
+
+                    if(createdTime != undefined) {
+                        setModifiedTime(result.data.modifiedTime);
+                    }
+
                     // Ensure unique IDs when adding new waypoints
                     const newWaypoints = deserializeWayPoints(result.data).map((wp, i) => ({
                         ...wp,
@@ -26,6 +42,20 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, setEdit
                     console.log({ type: "uploadWaypoints", newWaypoints })
 
                     setWaypoints(prevWaypoints => [...prevWaypoints, ...newWaypoints]);
+
+                    if(result.data.source) {
+                        const value = newWaypoints.find(x => x.data.id === result.data.source);
+                        if(value) {
+                            setSourceNode(value);
+                        }
+                    }
+                    if(result.data.destination) {
+                        const value = newWaypoints.find(x => x.data.id === result.data.destination);
+                        if(value) {
+                            setDestinationNode(value);
+                        }
+                    }
+
                 } else {
                     console.error("Failed to parse waypoint file:", result.error);
                 }
@@ -37,16 +67,16 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, setEdit
     }, [setWaypoints]);
 
     const downloadWaypoints = useCallback<() => void>(() => {
-        const results = serializeWayPoints(waypoints);
-        console.log({ type: "downloadWaypoints", waypoints, results });
+        const results = serializeWayPoints({createdTime, modifiedTime, waypoints, sourceNode, destinationNode});
+        console.log({ type: "downloadWaypoints", waypoints, results }); 
         const resultsText = JSON.stringify(results, null, 2);
         downloadFile(new File([resultsText], "waypoints.json")); // Prettier JSON output
-    }, [waypoints]);
+    }, [waypoints, sourceNode, destinationNode]);
 
     return (
-        <div className="flex gap-2 mt-4">
+        <ButtonGroup>
             <FileUploader handleFiles={uploadWaypoints}>Upload Waypoints</FileUploader>
-            <button
+            <Button
                 onClick={() => {
                     // Ensure new waypoint gets a unique ID
                     const newId = `new-${Date.now()}-${waypoints.length}-${Math.random().toString(36).substring(2, 9)}`; // More robust unique ID
@@ -56,6 +86,9 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, setEdit
                             id: newId,
                             label: `Waypoint ${waypoints.length + 1}`,
                             height: 0,
+                            createdTime: new Date(),
+                            modifiedTime: new Date(),
+                            origin: "browser",
                         },
                         position: {
                             x: 0,
@@ -64,26 +97,22 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, setEdit
                     }
                     
                     setWaypoints(prevWaypoints => [...prevWaypoints, newRow]);
-                    setEditRow(waypoints.length); // Set edit mode for the newly added row
                 }}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
             >
                 Add Waypoint
-            </button>
-            <button
+            </Button>
+            <Button
                 onClick={downloadWaypoints}
-                className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
             >
                 Download Waypoints
-            </button>
-            <button
+            </Button>
+            <Button
                 onClick={() => {
                     setWaypoints([]);
                 }}
-                className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
             >
                 Delete WayPoints
-            </button>
-        </div>
+            </Button>
+        </ButtonGroup>
     )
 }

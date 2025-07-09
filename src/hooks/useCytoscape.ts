@@ -84,6 +84,7 @@ export default function useCytoscape({
             }
         };
     }, [
+        container,
         container.current,
         selectionType,
         touchTapThreshold,

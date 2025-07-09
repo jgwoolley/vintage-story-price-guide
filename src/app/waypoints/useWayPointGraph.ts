@@ -25,6 +25,10 @@ export function useWayPointGraph({cy, sourceNode, setSourceNode, destinationNode
         // Clear all previous highlights and classes
         cy.elements().removeClass('highlighted-path highlighted-node source-node highlighted-target hidden-edge');
 
+        if(waypoints == undefined || waypoints.length === 0) {
+            return;
+        }
+
         // If a source and destination are selected and they are different
         if (sourceNode != undefined && destinationNode != undefined && sourceNode.data.id !== destinationNode.data.id) {
             cy.edges().addClass('hidden-edge'); // Temporarily hide all edges for path highlighting
