@@ -43,18 +43,18 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
 
                     setWaypoints(prevWaypoints => [...prevWaypoints, ...newWaypoints]);
 
-                    if(result.data.source) {
-                        const value = newWaypoints.find(x => x.data.id === result.data.source);
-                        if(value) {
-                            setSourceNode(value);
-                        }
-                    }
-                    if(result.data.destination) {
-                        const value = newWaypoints.find(x => x.data.id === result.data.destination);
-                        if(value) {
-                            setDestinationNode(value);
-                        }
-                    }
+                    // if(result.data.source) {
+                    //     const value = newWaypoints.find(x => x.data.id === result.data.source);
+                    //     if(value) {
+                    //         setSourceNode(value);
+                    //     }
+                    // }
+                    // if(result.data.destination) {
+                    //     const value = newWaypoints.find(x => x.data.id === result.data.destination);
+                    //     if(value) {
+                    //         setDestinationNode(value);
+                    //     }
+                    // }
 
                 } else {
                     console.error("Failed to parse waypoint file:", result.error);

@@ -17,6 +17,11 @@ type WayPointsDataGridProps = {
 export default function WayPointsDataGrid({ sourceNode, destinationNode, rows, onZoom, setSourceNode, setDestinationNode, handleOpenEditDialog}: WayPointsDataGridProps) {
     const columns: GridColDef<WayPoint>[] = [
         {
+            field: 'id',
+            headerName: 'id',
+            valueGetter: (_, row) => row.connection?.data.id,
+        },
+        {
             field: 'label',
             headerName: 'Waypoint',
             valueGetter: (_, row) => row.data.label,
@@ -104,6 +109,7 @@ export default function WayPointsDataGrid({ sourceNode, destinationNode, rows, o
                     createdTime: false,
                     modifiedTime: false,
                     origin: false,
+                    id: false,
                 }}}}
             />
             

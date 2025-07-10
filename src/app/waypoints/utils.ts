@@ -4,7 +4,7 @@ export const WayPointOriginSchema = z.enum(["browser"]);
 export type WayPointOrigin = z.infer<typeof WayPointOriginSchema>;
 
 export const WayPointJsonSchema = z.object({
-    data: z.object({ 
+    data: z.object({
         id: z.string(),
         label: z.string(),
         height: z.number(),
@@ -46,7 +46,7 @@ export type WayPoint = {
 }
 
 export function calculateDistance({ source, destination }: { source: WayPoint, destination: WayPoint }) {
-    if(source.connection?.data.id === destination.data.id || destination.connection?.data.id === source.data.id) {
+    if (source.connection?.data.id === destination.data.id || destination.connection?.data.id === source.data.id) {
         return 0;
     }
 
@@ -57,33 +57,50 @@ export function calculateDistance({ source, destination }: { source: WayPoint, d
 
 export function deserializeWayPoints(waypoints: WayPointsJson): WayPoint[] {
     const results: WayPoint[] = [];
-    for (let index = 0; index < waypoints.waypoints.length; index++) {
-        const row = waypoints.waypoints[index];
+    const ids = new Set<string>();
+    for (const row of waypoints.waypoints) {
+        const id = row.data.id;
+        if (ids.has(id)) {
+            console.error(`Duplicate ids: ${id}`);
+            return [];
+        } else {
+            ids.add(id);
+        }
+        console.log(id);
+
         const newRow: WayPoint = {
             position: row.position,
             data: {
-                id: row.data.id,
+                id: id,
                 height: row.data.height,
                 label: row.data.label,
-                modifiedTime: row.data.modifiedTime ?? new Date(), // TODO
-                createdTime: row.data.createdTime ?? new Date(), // TODO
-                origin: "browser", // TODO
+                modifiedTime: row.data.modifiedTime,
+                createdTime: row.data.createdTime,
+                origin: "browser",
             },
         };
         results.push(newRow);
     }
 
-    for (let i = 0; i < results.length; i++) {
-        const { connection } = waypoints.waypoints[i];
-        if (connection != undefined) {
-            results[i].connection = results.find(x => x.data.id === connection);
+    for (const sourceJson of waypoints.waypoints) {
+        const { connection: connectionId } = sourceJson;
+        if (connectionId != undefined) {
+            const source = results.find(x => x.data.id === sourceJson.data.id);
+            const connection = results.find(x => x.data.id === connectionId);
+            if (source == undefined || connection == undefined) {
+                console.error({ sourceJson, source, connection });
+                continue;
+            }
+            source.connection = connection;
         }
     }
+
+
 
     return results;
 }
 
-export function serializeWayPoints({createdTime, modifiedTime, waypoints, sourceNode, destinationNode}: {createdTime: Date | undefined, modifiedTime: Date | undefined, waypoints: WayPoint[], sourceNode: WayPoint | undefined, destinationNode: WayPoint | undefined}): WayPointsJson {
+export function serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode }: { createdTime: Date | undefined, modifiedTime: Date | undefined, waypoints: WayPoint[], sourceNode: WayPoint | undefined, destinationNode: WayPoint | undefined }): WayPointsJson {
     const newWaypoints: WayPointJson[] = [];
     for (const row of waypoints) {
         const newRow: WayPointJson = {
@@ -106,7 +123,7 @@ export function serializeWayPoints({createdTime, modifiedTime, waypoints, source
     }
 
     return {
-        source: sourceNode?.data.id, 
+        source: sourceNode?.data.id,
         destination: destinationNode?.data.id,
         modifiedTime: modifiedTime ? modifiedTime : new Date(),
         createdTime: createdTime ? createdTime : new Date(),
