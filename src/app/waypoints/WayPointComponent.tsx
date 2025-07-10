@@ -22,6 +22,14 @@ export default function WayPointComponent() {
 
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [editRow, setEditRow] = useState<WayPoint>({ position: { x: 0, y: 0 }, data: { id: "", label: "", height: 0, createdTime: new Date(), modifiedTime: new Date(), origin: "browser" } });
+    const onZoomNode = (eles?: cytoscape.CollectionArgument, padding?: number) => {
+        const cy = cyRef.current;
+        if (cy == undefined) {
+            return;
+        }
+        cy.fit(eles, padding);
+    };
+    
     const onZoom = (waypoint: WayPoint) => {
         const cy = cyRef.current;
         if (cy == undefined) {
@@ -121,8 +129,8 @@ export default function WayPointComponent() {
                                     </TableHead>
                                     <TableBody>
                                         {pathSteps.map((x, index) => (<TableRow key={index}>
-                                            <TableCell>{x.from.data("label")}</TableCell>
-                                            <TableCell>{x.to.data("label")}</TableCell>
+                                            <TableCell sx={{cursor: "pointer"}} onClick={() => onZoomNode(x.from)}>{x.from.data("label")}</TableCell>
+                                            <TableCell sx={{cursor: "pointer"}} onClick={() => onZoomNode(x.to)}>{x.to.data("label")}</TableCell>
                                             <TableCell>{Math.round(x.distance * 10) / 10}</TableCell>
                                         </TableRow>))}
                                         <TableRow>
@@ -156,6 +164,7 @@ export default function WayPointComponent() {
             {/* Waypoint Table */}
             <WayPointsDataGrid
                 sourceNode={sourceNode}
+                destinationNode={destinationNode}
                 rows={waypoints}
                 onZoom={onZoom}
                 setSourceNode={setSourceNode}

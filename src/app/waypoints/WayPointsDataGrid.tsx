@@ -6,6 +6,7 @@ import { calculateDistance, WayPoint } from "./utils";
 
 type WayPointsDataGridProps = {
     sourceNode: WayPoint | undefined,
+    destinationNode: WayPoint | undefined,
     rows: WayPoint[],
     onZoom: (waypoint: WayPoint) => void,
     setSourceNode: (waypoint: WayPoint | undefined) => void,
@@ -13,7 +14,7 @@ type WayPointsDataGridProps = {
     handleOpenEditDialog: (waypoint: WayPoint) => void,
 }
 
-export default function WayPointsDataGrid({ sourceNode, rows, onZoom, setSourceNode, setDestinationNode, handleOpenEditDialog}: WayPointsDataGridProps) {
+export default function WayPointsDataGrid({ sourceNode, destinationNode, rows, onZoom, setSourceNode, setDestinationNode, handleOpenEditDialog}: WayPointsDataGridProps) {
     const columns: GridColDef<WayPoint>[] = [
         {
             field: 'label',
@@ -79,11 +80,11 @@ export default function WayPointsDataGrid({ sourceNode, rows, onZoom, setSourceN
                 return (<ButtonGroup>
                     <Button variant="outlined" onClick={() => handleOpenEditDialog(row)}>edit</Button>
                     <Button variant="outlined" onClick={() => onZoom(row)}>zoom</Button>
-                    <Button variant="outlined" onClick={() => {
+                    <Button variant={sourceNode?.data.id === row.data.id ? "contained": "outlined"} onClick={() => {
                         setSourceNode(row);
                         onZoom(row);
                     }}>set source</Button>
-                    <Button variant="outlined" onClick={() => {
+                    <Button variant={destinationNode?.data.id === row.data.id ? "contained": "outlined"} onClick={() => {
                         setDestinationNode(row);
                         onZoom(row);
                     }}>set destination</Button>
