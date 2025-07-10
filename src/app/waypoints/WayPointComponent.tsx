@@ -128,9 +128,7 @@ export default function WayPointComponent() {
                 waypoints={waypoints}
                 setWaypoints={setWayPoints}
                 sourceNode={sourceNode}
-                setSourceNode={setSourceNode}
                 destinationNode={destinationNode}
-                setDestinationNode={setDestinationNode}
             />
             <h3>WayPoint Management</h3>
 

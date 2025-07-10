@@ -8,14 +8,14 @@ import { deserializeWayPoints, serializeWayPoints, WayPoint, WayPointJsonsSchema
 
 export type WayPointActiveButtonsProps = {
     sourceNode: WayPoint | undefined,
-    setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    // setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     destinationNode: WayPoint | undefined,
-    setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    // setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     waypoints: WayPoint[],
     setWaypoints: Dispatch<SetStateAction<WayPoint[]>>,
 }
 
-export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, setSourceNode, destinationNode, setDestinationNode }: WayPointActiveButtonsProps) {
+export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, destinationNode }: WayPointActiveButtonsProps) {
     const [createdTime, setCreatedTime] = useState<Date>();
     const [modifiedTime, setModifiedTime] = useState<Date>();
 
