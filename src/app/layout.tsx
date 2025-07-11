@@ -1,7 +1,6 @@
+import EmotionRegistry from "@/components/EmotionRegistry";
 import siteInfo from "@/utils/siteInfo";
 import type { Metadata } from "next";
-import EmotionRegistry from "./EmotionRegistry";
-import "./globals.css";
 import LayoutComponent from "./LayoutComponent";
 
 export const metadata: Metadata = {
@@ -10,11 +9,14 @@ export const metadata: Metadata = {
   manifest: "manifest.webmanifest",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+
   return (
     <html lang="en">
       <body>

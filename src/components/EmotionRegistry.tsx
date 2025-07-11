@@ -1,10 +1,9 @@
-// app/EmotionRegistry.tsx (or similar, a separate file for clarity)
 'use client'; // This component will be a Client Component
 
-import React, { useState } from 'react';
-import { useServerInsertedHTML } from 'next/navigation';
-import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import { useServerInsertedHTML } from 'next/navigation';
+import React, { useState } from 'react';
 
 export default function EmotionRegistry({ children }: { children: React.ReactNode }) {
   const [cache] = useState(() => {
