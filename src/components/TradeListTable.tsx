@@ -1,6 +1,8 @@
 'use client';
 
 import { TradeListElement, TradeListElementList, TraderList, VsServer } from "@/utils/schema";
+import { Autocomplete } from "@mui/material";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useMemo, useState } from "react";
 
 export type TradeListTableProps = {
@@ -76,21 +78,49 @@ function determineItemName({ langLut, trade }: { vsServer: VsServer, langLut?: R
     return [result, false];
 }
 
+const columns: GridColDef<Trade>[] = [
+    {
+        field: 'code',
+        headerName: 'code',
+    },
+    {
+        field: 'name',
+        headerName: 'name',
+    },
+    {
+        field: 'traderName',
+        headerName: 'traderName',
+    },
+    {
+        field: 'traderType',
+        headerName: 'traderType',
+    },
+    {
+        field: 'type',
+        headerName: 'type',
+    },
+    {
+        field: 'stacksize',
+        headerName: 'stacksize',
+    },
+    
+    {
+        field: 'min',
+        headerName: 'min',
+    },
+
+    {
+        field: 'max',
+        headerName: 'max',
+    },
+];
+
 export default function TradeListTable({ lang, vsServer }: TradeListTableProps) {
     const { tradelists } = vsServer.assets.survival.config;
     const langLut = vsServer.assets.game.lang.lut.get(lang);
 
-    const [itemNameFriendly, setItemNameFriendly] = useState<boolean>(true);
-    const [itemNameFilter, setItemNameFilter] = useState<string>("");
-    const [traderTypeFilter, setTraderTypeFilter] = useState<"" | "trader" | "villager">("trader");
-    const [traderNameFriendly, setTraderNameFriendly] = useState<boolean>(true);
-    const [traderNameFilter, setTraderNameFilter] = useState<string>("");
-    const [tradeTypeFilter, setTradeTypeFilter] = useState<"" | "selling" | "buying">("");
-
-    const [trades, itemNames, traderNames] = useMemo(() => {
+    const trades = useMemo(() => {
         const trades: Trade[] = [];
-        const itemNames = new Set<string>();
-        const traderNames = new Set<string>();
 
         tradelists.forEach(trader => {
             function processList(e: TradeListElementList, tradeType: TradeType) {
@@ -106,8 +136,6 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
                         langLut,
                         trade,
                     });
-                    itemNames.add(itemName);
-                    traderNames.add(traderName);
                     trades.push({
                         traderName: traderName,
                         traderNameError: traderNameError,
@@ -128,46 +156,11 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
             processList(trader.selling, "selling");
         })
         trades.sort((a, b) => a.code.localeCompare(b.code));
-
-        return [
-            trades.filter(x => {
-                if (tradeTypeFilter.length !== 0) {
-                    if (x.type !== tradeTypeFilter) {
-                        return false;
-                    }
-                }
-
-                if (traderTypeFilter.length !== 0) {
-                    if (x.traderType !== traderTypeFilter) {
-                        return false;
-                    }
-                }
-
-                if (itemNameFilter.length !== 0) {
-                    if (!x.name.toLowerCase().includes(itemNameFilter.toLowerCase())) {
-                        return false;
-                    }
-                }
-
-                if (traderNameFilter.length !== 0) {
-                    if (!x.traderName.toLowerCase().includes(traderNameFilter.toLowerCase())) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }),
-            Array.from(itemNames),
-            Array.from(traderNames),
-        ];
+        return trades;
     }, [
         vsServer,
         langLut,
         tradelists,
-        itemNameFilter,
-        traderNameFilter,
-        tradeTypeFilter,
-        traderTypeFilter,
     ]);
 
     if (langLut == undefined) {
@@ -176,82 +169,14 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
 
     return (
         <>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Trader Type</th>
-                        <th>Trader Name</th>
-                        <th>Buying / Selling</th>
-                        <th>Stack Size</th>
-                        <th>Cost Min</th>
-                        <th>Cost Max</th>
-                    </tr>
-                    <tr>
-                        <th>
-                            <input list="itemNames" name="itemNames" value={itemNameFilter} onChange={x => setItemNameFilter(x.target.value)} />
-                            <datalist id="itemNames">
-                                {itemNames.map((x, index) => (
-                                    <option key={index} value={x}>{x}</option>)
-                                )}
-                            </datalist>
-                            <button onClick={() => setItemNameFriendly(!itemNameFriendly)}>{itemNameFriendly ? "🫣" : "👀"}</button>
-                        </th>
-                        <th>
-                            <select name="traderType" value={traderTypeFilter} onChange={x => {
-                                if (x.target.value === "" || x.target.value === "trader" || x.target.value === "villager") {
-                                    setTraderTypeFilter(x.target.value)
-                                }
-                            }}>
-                                <option value=""></option>
-                                <option value="trader">trader</option>
-                                <option value="villager">villager</option>
-                            </select>
-                        </th>
-                        <th>
-                            <input list="traderNames" name="traderNames" value={traderNameFilter} onChange={x => setTraderNameFilter(x.target.value)} />
-                            <datalist id="traderNames">
-                                {traderNames.map((x, index) => (
-                                    <option key={index} value={x}>{x}</option>)
-                                )}
-                            </datalist>
-                            <button onClick={() => setTraderNameFriendly(!traderNameFriendly)}>{traderNameFriendly ? "🫣" : "👀"}</button>
-                        </th>
-                        <th>
-                            <select name="TradeType" value={tradeTypeFilter} onChange={x => {
-                                if (x.target.value === "" || x.target.value === "selling" || x.target.value === "buying") {
-                                    setTradeTypeFilter(x.target.value);
-                                }
-                            }}>
-                                <option value=""></option>
-                                <option value="selling">selling</option>
-                                <option value="buying">buying</option>
-                            </select>
-                        </th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {trades.map((trade, index) => (
-                        <tr key={index}>
-                            <td style={{ color: trade.nameError ? "red" : undefined }}>
-                                {itemNameFriendly ? trade.name : trade.code} {trade.nameError && "*"}
-                            </td>
-                            <td>{trade.traderType}</td>
-                            <td style={{ color: trade.traderNameError ? "red" : undefined }}>
-                                {traderNameFriendly ? trade.traderName : trade.traderCode} {trade.traderNameError && "*"}
-                            </td>
-                            <td>{trade.type}</td>
-                            <td>{trade.stacksize}</td>
-                            <td>{trade.min}</td>
-                            <td>{trade.max}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <DataGrid 
+                columns={columns}
+                rows={trades}
+                getRowId={x => JSON.stringify(x)}
+                initialState={{columns: {columnVisibilityModel: { 
+                    code: false ,
+                }}}}
+            />
         </>
-
     )
 }
