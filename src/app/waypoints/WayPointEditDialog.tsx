@@ -1,8 +1,9 @@
 'use client';
 
 import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
-import { Dispatch, SetStateAction } from "react";
-import { stringifyWayPoint, WayPoint } from "./utils";
+import { Dispatch, SetStateAction, useCallback, useContext } from "react";
+import { getWaypointCommand, stringifyWayPoint, WayPoint } from "./utils";
+import { SubmitSnackbarContext } from "@/components/SnackbarProvider";
 
 type WayPointsDataGridProps = {
     open: boolean,
@@ -11,9 +12,14 @@ type WayPointsDataGridProps = {
     setRows: Dispatch<SetStateAction<WayPoint[]>>,
     editRow: WayPoint,
     setEditRow: Dispatch<SetStateAction<WayPoint>>,
+    setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    onZoomWayPoint: (waypoint: WayPoint) => void,
 }
 
-export default function WayPointEditDialog({ rows, setRows, open, setOpen, editRow, setEditRow }: WayPointsDataGridProps) {
+export default function WayPointEditDialog({ rows, setRows, open, setOpen, editRow, setEditRow, setSourceNode, setDestinationNode, onZoomWayPoint }: WayPointsDataGridProps) {
+    const submitMessage = useContext(SubmitSnackbarContext);
+    
     const handleClose = () => {
         setOpen(false);
     };
@@ -23,11 +29,15 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
         setRows(prev => prev.filter(prevRow => prevRow.data.id !== editRow.data.id));
     }
 
-    const onSubmit = (event: React.FormEvent) => {
+    const onSubmit = useCallback((event: React.FormEvent) => {
         event.preventDefault();
-        handleClose();
-        setRows(prev => prev.map(prevRow => prevRow.data.id === editRow.data.id ? editRow : prevRow));
-    };
+        setRows(prev => {
+            const results = prev.map(prevRow => prevRow.data.id === editRow.data.id ? editRow : prevRow);
+            submitMessage("Submitted Changes", "success", results);
+            handleClose();
+            return results;
+        });
+    }, [setRows]);
 
     return (
         <Dialog open={open} onClose={handleClose}>
@@ -37,7 +47,6 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                     Please update the waypoint details below.
                 </DialogContentText>
                 <Box
-                    onSubmit={onSubmit}
                     component="form"
                     sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
                     noValidate
@@ -174,6 +183,7 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                         sx={{ width: 300 }}
                         value={editRow.connection ? editRow.connection : null}
                         onChange={(_, newValue) => {
+                            // TODO: This doesn't seem to work...
                             if (newValue != undefined) {
                                 editRow.connection = newValue;
                                 newValue.connection = editRow;
@@ -181,6 +191,16 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                         }}
                         renderInput={(params) => <TextField {...params} label="Connection" />}
                     />
+                </Box>
+                <Box>
+
+                    <Button onClick={() => setSourceNode(editRow)}>set Source</Button>
+                    <Button onClick={() => setDestinationNode(editRow)}>set Destination</Button>
+                    <Button onClick={() => onZoomWayPoint(editRow)}>Zoom</Button>
+                    <Button onClick={async () => {
+                        const command = getWaypointCommand(editRow);
+                        await navigator.clipboard.writeText(command);
+                    }}>Get Command</Button>
                 </Box>
                 <DialogActions
                     sx={{
@@ -193,11 +213,8 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                     }}
                 >
                     <Button onClick={handleClose}>Cancel</Button>
-                    <Button onClick={() => alert("Not implemented")}>set Source</Button>
-                    <Button onClick={() => alert("Not implemented")}>set Destination</Button>
-                    <Button onClick={() => alert("Not implemented")}>Zoom</Button>
                     <Button onClick={handleDelete}>Remove</Button>
-                    <Button type="submit">Submit</Button>
+                    <Button onClick={(e)=> {onSubmit(e)}} type="submit">Submit</Button>
                 </DialogActions>
             </DialogContent>
         </Dialog>

@@ -6,7 +6,6 @@ import { AppBar, Container, Menu, MenuItem, Stack, Toolbar, Tooltip, Typography 
 import Link from "next/link";
 import { PropsWithChildren, useState } from "react";
 
-
 function LayoutAppBarMenuItem({ href, children }: PropsWithChildren<{ href: string }>) {
     return (
         <MenuItem><Link style={{ color: "inherit", textDecoration: "inherit" }} href={href}>{children}</Link></MenuItem>

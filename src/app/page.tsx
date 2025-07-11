@@ -1,16 +1,8 @@
 import { Card, CardActionArea, CardContent, CardHeader, Grid, IconButton, Tooltip, Typography } from '@mui/material';
 import Link from 'next/link';
-import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
-import MapIcon from '@mui/icons-material/Map';
+import { RouteInfo, toolRoutes } from './routes';
 
-type ToolCardProps = {
-  name: string,
-  description: string,
-  href: string,
-  IconComponent: React.ComponentType,
-}
-
-function ToolCard({ name, description, href, IconComponent }: ToolCardProps) {
+function ToolCard({ name, description, href, IconComponent }: RouteInfo) {
   return (
     <Card 
       sx={{ 
@@ -49,18 +41,15 @@ export default async function Home() {
   return (
     <>
       <Grid container spacing={4} sx={{ p: 4 }}>
+        {toolRoutes.map(({name, description, href, IconComponent}, index) => (
         <ToolCard
-          name='Vintage Story Trades Tool'
-          description='Get the best deals with wandering traders! The best price guide around.'
-          href='/trades'
-          IconComponent={LocalGroceryStoreIcon}
-        />
-        <ToolCard
-          name='WayPoint Tool'
-          description='Are you a clockmaker whose daliance with translocators has massively reduced the time it takes to get from point A to point B, but planning the optimal route has taken its tole on your sanity? Look no furhter than the WayPoint tool!'
-          href='/waypoints'
-          IconComponent={MapIcon}
-        />
+            key={index}
+            name={name}
+            description={description}
+            href={href}
+            IconComponent={IconComponent}
+          />
+        ))}
       </Grid>
     </>
   );

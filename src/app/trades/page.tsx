@@ -6,6 +6,14 @@ import Stream from "stream";
 import { TradeListSchema, TraderTypeSchema, VsLanguageLutSchema, VsServer } from "@/utils/schema";
 import TradeListTable from "@/components/TradeListTable";
 import Link from 'next/link'
+import type { Metadata } from 'next';
+import { tradesRoute } from "../routes";
+
+export const metadata: Metadata = {
+  title: tradesRoute.name,
+  description: tradesRoute.description,
+  
+};
 
 async function cacheDownload(url: string, cacheFile: string): Promise<void> {
   if (fs.existsSync(cacheFile)) {

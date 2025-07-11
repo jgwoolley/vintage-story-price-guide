@@ -2,9 +2,10 @@
 
 import { downloadFile } from "@/utils/downloadFile";
 import { Button, ButtonGroup } from "@mui/material";
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useContext, useState } from "react";
 import FileUploader from "./FileUploader";
 import { deserializeWayPoints, serializeWayPoints, WayPoint, WayPointJsonsSchema } from "./utils";
+import { SubmitSnackbarContext } from "@/components/SnackbarProvider";
 
 export type WayPointActiveButtonsProps = {
     sourceNode: WayPoint | undefined,
@@ -13,11 +14,13 @@ export type WayPointActiveButtonsProps = {
     // setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     waypoints: WayPoint[],
     setWaypoints: Dispatch<SetStateAction<WayPoint[]>>,
+    onZoomPosition: (position: cytoscape.Position) => void,
 }
 
-export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, destinationNode }: WayPointActiveButtonsProps) {
+export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, destinationNode, onZoomPosition }: WayPointActiveButtonsProps) {
     const [createdTime, setCreatedTime] = useState<Date>();
     const [modifiedTime, setModifiedTime] = useState<Date>();
+    const submitMessage = useContext(SubmitSnackbarContext);
 
     const uploadWaypoints = useCallback<(files: FileList) => void>(async (files: FileList) => {
         for (const file of files) {
@@ -41,16 +44,16 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                         ...wp,
                         id: wp.data.id || `uploaded-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`, // Robust unique ID
                     }));
-                    console.log({ type: "uploadWaypoints", newWaypoints })
 
                     setWaypoints(prevWaypoints => {
                         const oldIds = new Set(prevWaypoints.map(x => x.data.id));
                         const sharedIds = newIds.intersection(oldIds);
                         if(sharedIds.size > 0) {
-                            console.error({type: "Had shared ids", sharedIds});
+                            submitMessage("Failed to Upload WayPoints: Multiple WayPoints share same internal id", "error", {type: "Had shared ids", sharedIds})
                             // TODO: In event of shared ids maybe do something smarter...
                             return prevWaypoints;
                         }
+                        submitMessage("Uploaded WayPoints", "success", { type: "uploadWaypoints", newWaypoints });
 
                         return [...prevWaypoints, ...newWaypoints];
                     });
@@ -69,11 +72,10 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                     // }
 
                 } else {
-                    console.error("Failed to parse waypoint file:", result.error);
+                    submitMessage("Failed to Upload WayPoints", "error", result.error);
                 }
             } catch (error) {
-                console.error("Error reading or parsing file:", error);
-                // Handle non-JSON or corrupted files
+                submitMessage("Failed to Upload WayPoints", "error", error);
             }
         }
     }, [setWaypoints]);
@@ -125,7 +127,7 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
             >
                 Delete WayPoints
             </Button>
-            <Button onClick={() => alert("Not implemented")}>ReCenter Graph</Button>
+            <Button onClick={() => onZoomPosition({x: 0, y: 0})}>ReCenter Graph</Button>
         </ButtonGroup>
     )
 }

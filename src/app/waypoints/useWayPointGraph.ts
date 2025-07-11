@@ -1,6 +1,7 @@
 import cytoscape from "cytoscape";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { PathStep, WayPoint } from "./utils";
+import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
 
 export type UseWayPointGraphProps = {
     cy: cytoscape.Core | null,
@@ -10,9 +11,10 @@ export type UseWayPointGraphProps = {
     setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     setPathSteps: Dispatch<SetStateAction<PathStep[]>>,
     waypoints: WayPoint[],
+    submitMessage: SubmitSnackbarMessage,
 };
 
-function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoints }: UseWayPointGraphProps) {
+function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoints, submitMessage }: UseWayPointGraphProps) {
     if (cy == undefined) {
         return;
     }
@@ -36,7 +38,7 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
     const destination = cy.$(`#${destinationNode.data.id}`);
 
     if (source.length === 0 || destination.length === 0) {
-        console.error({ source, destination, sourceNode, destinationNode, sourceId: sourceNode.data.id, destinationId: destinationNode.data.id });
+        submitMessage("Failed to calculate graph", "error", { source, destination, sourceNode, destinationNode, sourceId: sourceNode.data.id, destinationId: destinationNode.data.id })
         return;
     }
 
@@ -57,7 +59,7 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
     const path = aStarResult.path;
 
     if(path == undefined|| path.length <= 0 || aStarResult.found === false) {
-        console.log("No path found between selected nodes. Showing all edges.");
+        submitMessage("No path found between selected nodes. Showing all edges.", "error");
         cy.edges("edge[weight != 0]").removeClass('hidden-edge'); // If no path, show all edges again
         cy.getElementById(sourceNode.data.id).addClass('source-node');
         if (destinationNode) {

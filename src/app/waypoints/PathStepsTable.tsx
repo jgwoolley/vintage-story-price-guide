@@ -2,7 +2,7 @@
 
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import cytoscape from "cytoscape";
-import { calculateDistance, convertNodeToWayPoint, getWaypointCommand, PathStep, WayPoint } from "./utils";
+import { calculateDistance, convertNodeToWayPoint, PathStep, WayPoint } from "./utils";
 
 export type OnZoomNode = (eles?: cytoscape.CollectionArgument, padding?: number) => void;
 
@@ -23,17 +23,12 @@ function PathStepRow({ node, distance, onZoomNode }: PathStepRowProps) {
     const waypoint = convertNodeToWayPoint(node);
     const {data: {label, height: y}, position: { x, y: z}} = waypoint;
 
-    const writeCommand = async () => {
-        const command = getWaypointCommand(waypoint);
-        await navigator.clipboard.writeText(command);
-    };
-
     return (
         <TableRow>
             <TableCell sx={{ cursor: "pointer" }} onClick={() => onZoomNode(node)}>{label}</TableCell>
-            <TableCell sx={{ cursor: "pointer" }} onClick={writeCommand}>{x}</TableCell>
-            <TableCell sx={{ cursor: "pointer" }} onClick={writeCommand}>{y}</TableCell>
-            <TableCell sx={{ cursor: "pointer" }} onClick={writeCommand}>{z}</TableCell>
+            <TableCell>{x}</TableCell>
+            <TableCell>{y}</TableCell>
+            <TableCell>{z}</TableCell>
             <TableCell>{distance}</TableCell>
         </TableRow>
     )
