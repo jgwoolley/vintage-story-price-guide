@@ -28,6 +28,7 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
         event.preventDefault();
         handleClose();
         setRows(prev => prev.map(prevRow => prevRow.data.id === editRow.data.id ? editRow : prevRow));
+        onZoom(editRow);
     };
 
     return (
@@ -188,7 +189,6 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                             <Button onClick={handleDelete}>Remove</Button>
                             <Button onClick={() => onZoom(editRow)}>Zoom</Button>
                             <Button type="submit">Submit</Button>
-                        
                     </DialogActions>
                 </Box>
             </DialogContent>

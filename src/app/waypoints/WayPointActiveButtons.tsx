@@ -13,9 +13,10 @@ export type WayPointActiveButtonsProps = {
     // setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     waypoints: WayPoint[],
     setWaypoints: Dispatch<SetStateAction<WayPoint[]>>,
+    onZoom: (waypoint: WayPoint) => void,
 }
 
-export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, destinationNode }: WayPointActiveButtonsProps) {
+export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, destinationNode, onZoom }: WayPointActiveButtonsProps) {
     const [createdTime, setCreatedTime] = useState<Date>();
     const [modifiedTime, setModifiedTime] = useState<Date>();
 
@@ -97,6 +98,7 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                     }
                     
                     setWaypoints(prevWaypoints => [...prevWaypoints, newRow]);
+                    onZoom(newRow);
                 }}
             >
                 Add Waypoint

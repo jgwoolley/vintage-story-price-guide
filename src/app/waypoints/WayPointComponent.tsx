@@ -2,7 +2,7 @@
 
 import CytoscapeComponent from "@/components/CytoscapeComponent";
 import { Box, Tab, Tabs } from "@mui/material";
-import cytoscape from "cytoscape";
+import cytoscape, { Position } from "cytoscape";
 import { PropsWithChildren, useCallback, useRef, useState } from "react";
 import PathStepsTable from "./PathStepsTable";
 import useWayPointEdges from "./useWayPointEdges";
@@ -56,7 +56,12 @@ export default function WayPointComponent() {
         if (cy == undefined) {
             return;
         }
-        cy.fit(cy.$id(waypoint.data.id));
+        const currentZoom = cy.zoom();
+        const newPosition: Position = {
+            x: (cy.width() / 2) - (waypoint.position.x * currentZoom),
+            y: (cy.height() / 2) - (waypoint.position.y * currentZoom),
+        }
+        cy.pan(newPosition);
     };
 
     const handleOpenEditDialog = (waypoint: WayPoint) => {
@@ -123,6 +128,7 @@ export default function WayPointComponent() {
                 setWaypoints={setWayPoints}
                 sourceNode={sourceNode}
                 destinationNode={destinationNode}
+                onZoom={onZoom}
             />
             <h3>WayPoint Management</h3>
 
