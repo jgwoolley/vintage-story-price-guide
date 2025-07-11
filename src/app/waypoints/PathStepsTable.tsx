@@ -4,15 +4,32 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from
 import cytoscape from "cytoscape";
 import { calculateDistance, PathStep, WayPoint } from "./utils";
 
+export type OnZoomNode = (eles?: cytoscape.CollectionArgument, padding?: number) => void;
+
 export type PathStepsTableProps = {
- pathSteps: PathStep[],
- onZoomNode: (eles?: cytoscape.CollectionArgument, padding?: number) => void,
- sourceNode: WayPoint | undefined, 
- destinationNode: WayPoint | undefined,
+    pathSteps: PathStep[],
+    onZoomNode: OnZoomNode,
+    sourceNode: WayPoint | undefined,
+    destinationNode: WayPoint | undefined,
 }
 
-export default function PathStepsTable({pathSteps, onZoomNode, sourceNode, destinationNode}: PathStepsTableProps) {
-    if(sourceNode == undefined || destinationNode == undefined) {
+type PathStepRowProps = {
+    node: cytoscape.NodeSingular,
+    distance: number,
+    onZoomNode: OnZoomNode,
+}
+
+function PathStepRow({ node, distance, onZoomNode }: PathStepRowProps) {
+    return (
+        <TableRow>
+            <TableCell sx={{ cursor: "pointer" }} onClick={() => onZoomNode(node)}>{node.data("label")}</TableCell>
+            <TableCell>{distance}</TableCell>
+        </TableRow>
+    )
+}
+
+export default function PathStepsTable({ pathSteps, onZoomNode, sourceNode, destinationNode }: PathStepsTableProps) {
+    if (sourceNode == undefined || destinationNode == undefined || pathSteps.length < 1) {
         return "No Path to display.";
     }
 
@@ -21,25 +38,29 @@ export default function PathStepsTable({pathSteps, onZoomNode, sourceNode, desti
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell>from</TableCell>
-                        <TableCell>to</TableCell>
+                        <TableCell>waypoint</TableCell>
                         <TableCell>distance</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {pathSteps.map((x, index) => (<TableRow key={index}>
-                        <TableCell sx={{ cursor: "pointer" }} onClick={() => onZoomNode(x.from)}>{x.from.data("label")}</TableCell>
-                        <TableCell sx={{ cursor: "pointer" }} onClick={() => onZoomNode(x.to)}>{x.to.data("label")}</TableCell>
-                        <TableCell>{Math.round(x.distance * 10) / 10}</TableCell>
-                    </TableRow>))}
+                    <PathStepRow
+                        node={pathSteps[0].to}
+                        onZoomNode={onZoomNode}
+                        distance={0}
+                    />
+                    {pathSteps.map((x, index) => (
+                        <PathStepRow
+                            key={index}
+                            node={x.from}
+                            onZoomNode={onZoomNode}
+                            distance={Math.round(x.distance * 10) / 10}
+                        />))}
                     <TableRow>
                         <TableCell><b>Total</b></TableCell>
-                        <TableCell><b></b></TableCell>
                         <TableCell><b>{pathSteps.reduce((acc, obj) => acc + obj.distance, 0)}</b></TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell><b>bird&#39;s eye distance</b></TableCell>
-                        <TableCell><b></b></TableCell>
+                        <TableCell><b>Bird&#39;s Eye Distance</b></TableCell>
                         <TableCell><b>{Math.round(calculateDistance({ source: sourceNode, destination: destinationNode }))}</b></TableCell>
                     </TableRow>
                 </TableBody>

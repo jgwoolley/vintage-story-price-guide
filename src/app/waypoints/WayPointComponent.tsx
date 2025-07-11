@@ -3,7 +3,7 @@
 import CytoscapeComponent from "@/components/CytoscapeComponent";
 import cytoscape, { Position } from "cytoscape";
 import { useCallback, useRef, useState } from "react";
-import PathStepsTable from "./PathStepsTable";
+import PathStepsTable, { OnZoomNode } from "./PathStepsTable";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
 import useWayPointStylesheet from "./useWayPointStylesheet";
@@ -22,7 +22,7 @@ export default function WayPointComponent() {
 
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [editRow, setEditRow] = useState<WayPoint>({ position: { x: 0, y: 0 }, data: { id: "", label: "", height: 0, createdTime: new Date(), modifiedTime: new Date(), origin: "browser" } });
-    const onZoomNode = (eles?: cytoscape.CollectionArgument, padding?: number) => {
+    const onZoomNode: OnZoomNode = (eles, padding) => {
         const cy = cyRef.current;
         if (cy == undefined) {
             return;
