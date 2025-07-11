@@ -44,14 +44,14 @@ export default function PathStepsTable({ pathSteps, onZoomNode, sourceNode, dest
                 </TableHead>
                 <TableBody>
                     <PathStepRow
-                        node={pathSteps[0].to}
+                        node={pathSteps[0].from}
                         onZoomNode={onZoomNode}
                         distance={0}
                     />
                     {pathSteps.map((x, index) => (
                         <PathStepRow
                             key={index}
-                            node={x.from}
+                            node={x.to}
                             onZoomNode={onZoomNode}
                             distance={Math.round(x.distance * 10) / 10}
                         />))}
