@@ -1,9 +1,8 @@
 'use client';
 
 import CytoscapeComponent from "@/components/CytoscapeComponent";
-import { Box, Tab, Tabs } from "@mui/material";
 import cytoscape, { Position } from "cytoscape";
-import { PropsWithChildren, useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import PathStepsTable from "./PathStepsTable";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
@@ -12,26 +11,6 @@ import { PathStep, WayPoint } from "./utils";
 import WayPointActiveButtons from "./WayPointActiveButtons";
 import WayPointEditDialog from "./WayPointEditDialog";
 import WayPointsDataGrid from "./WayPointsDataGrid";
-
-function CustomTabPanel({ children, currentTab, index }: PropsWithChildren<{ currentTab: number, index: number }>) {
-    return (
-        <div
-            role="tabpanel"
-            hidden={currentTab !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-        >
-            {currentTab === index && <Box sx={{ p: 3 }}>{children}</Box>}
-        </div>
-    );
-}
-
-function a11yProps(index: number) {
-    return {
-        id: `simple-tab-${index}`,
-        'aria-controls': `simple-tabpanel-${index}`,
-    };
-}
 
 export default function WayPointComponent() {
     const [waypoints, setWayPoints] = useState<WayPoint[]>([]);
@@ -102,12 +81,6 @@ export default function WayPointComponent() {
         });
     }, []);
 
-    const [currentTab, setCurrentTab] = useState(0);
-
-    const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-        setCurrentTab(newValue);
-    };
-
     return (
         <div>
             <h3>WayPoints</h3>
@@ -130,37 +103,23 @@ export default function WayPointComponent() {
                 sourceNode={sourceNode}
                 destinationNode={destinationNode}
             />
-            <h3>WayPoint Management</h3>
-
-            <Box sx={{ width: '100%' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={currentTab} onChange={handleTabChange} aria-label="waypoint tabs">
-                        <Tab label="Table" {...a11yProps(0)} />
-                        <Tab label="Path" {...a11yProps(1)} />
-                    </Tabs>
-                </Box>
-                <CustomTabPanel currentTab={currentTab} index={0}>
-                    <WayPointsDataGrid
-                        sourceNode={sourceNode}
-                        destinationNode={destinationNode}
-                        rows={waypoints}
-                        onZoom={onZoom}
-                        setSourceNode={setSourceNode}
-                        setDestinationNode={setDestinationNode}
-                        handleOpenEditDialog={handleOpenEditDialog}
-                    />
-                </CustomTabPanel>
-                <CustomTabPanel currentTab={currentTab} index={1}>
-                    <PathStepsTable 
-                        pathSteps={pathSteps}
-                        onZoomNode={onZoomNode}
-                        sourceNode={sourceNode}
-                        destinationNode={destinationNode}            
-                    />
-                </CustomTabPanel>
-
-            </Box>
-        
+            <h4>WayPoint Path</h4>
+            <PathStepsTable 
+                pathSteps={pathSteps}
+                onZoomNode={onZoomNode}
+                sourceNode={sourceNode}
+                destinationNode={destinationNode}            
+            />
+            <h4>WayPoint Table</h4>
+            <WayPointsDataGrid
+                sourceNode={sourceNode}
+                destinationNode={destinationNode}
+                rows={waypoints}
+                onZoom={onZoom}
+                setSourceNode={setSourceNode}
+                setDestinationNode={setDestinationNode}
+                handleOpenEditDialog={handleOpenEditDialog}
+            />        
             <WayPointEditDialog
                 open={openEditDialog}
                 setOpen={setOpenEditDialog}

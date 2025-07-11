@@ -13,7 +13,7 @@ export type PathStepsTableProps = {
 
 export default function PathStepsTable({pathSteps, onZoomNode, sourceNode, destinationNode}: PathStepsTableProps) {
     if(sourceNode == undefined || destinationNode == undefined) {
-        return null;
+        return "No Path to display.";
     }
 
     return (

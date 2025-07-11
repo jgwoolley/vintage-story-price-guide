@@ -85,7 +85,7 @@ export default function useCytoscape({
         };
     }, [
         container,
-        container.current,
+        container.current, // TODO: Remove
         selectionType,
         touchTapThreshold,
         hideEdgesOnViewport,
