@@ -181,7 +181,8 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                         }}
                         renderInput={(params) => <TextField {...params} label="Connection" />}
                     />
-                    <DialogActions
+                </Box>
+                 <DialogActions
                         sx={{
                             flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on extra-small screens, row on small and up
                             '& > button': {
@@ -191,12 +192,13 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                             justifyContent: 'flex-end', // Keep buttons aligned to the end
                         }}
                     >
-                        <ButtonGroup>
-                            <Button onClick={handleClose}>Cancel</Button>
+                        <Button onClick={handleClose}>Cancel</Button>
+                            <Button onClick={() => alert("Not implemented")}>set Source</Button>
+                            <Button onClick={() => alert("Not implemented")}>set Destination</Button>
+                            <Button onClick={() => alert("Not implemented")}>Zoom</Button>
                             <Button onClick={handleDelete}>Remove</Button>
-                            <Button type="submit">Submit</Button></ButtonGroup>
+                            <Button type="submit">Submit</Button>
                     </DialogActions>
-                </Box>
             </DialogContent>
         </Dialog>
     )

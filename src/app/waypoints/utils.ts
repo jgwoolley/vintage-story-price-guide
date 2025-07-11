@@ -55,14 +55,14 @@ export function calculateDistance({ source, destination }: { source: WayPoint, d
     return Math.sqrt(dx * dx + dz * dz);
 }
 
-export function deserializeWayPoints(waypoints: WayPointsJson): WayPoint[] {
+export function deserializeWayPoints(waypoints: WayPointsJson): [WayPoint[], Set<string>] {
     const results: WayPoint[] = [];
     const ids = new Set<string>();
     for (const row of waypoints.waypoints) {
         const id = row.data.id;
         if (ids.has(id)) {
             console.error(`Duplicate ids: ${id}`);
-            return [];
+            return [[] , new Set<string>()];
         } else {
             ids.add(id);
         }
@@ -95,9 +95,7 @@ export function deserializeWayPoints(waypoints: WayPointsJson): WayPoint[] {
         }
     }
 
-
-
-    return results;
+    return [results, ids];
 }
 
 export function serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode }: { createdTime: Date | undefined, modifiedTime: Date | undefined, waypoints: WayPoint[], sourceNode: WayPoint | undefined, destinationNode: WayPoint | undefined }): WayPointsJson {

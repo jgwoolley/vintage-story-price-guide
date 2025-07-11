@@ -34,14 +34,26 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                         setModifiedTime(result.data.modifiedTime);
                     }
 
+                    const [deserializedWaypoints, newIds] = deserializeWayPoints(result.data);
+
                     // Ensure unique IDs when adding new waypoints
-                    const newWaypoints = deserializeWayPoints(result.data).map((wp, i) => ({
+                    const newWaypoints = deserializedWaypoints.map((wp, i) => ({
                         ...wp,
                         id: wp.data.id || `uploaded-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`, // Robust unique ID
                     }));
                     console.log({ type: "uploadWaypoints", newWaypoints })
 
-                    setWaypoints(prevWaypoints => [...prevWaypoints, ...newWaypoints]);
+                    setWaypoints(prevWaypoints => {
+                        const oldIds = new Set(prevWaypoints.map(x => x.data.id));
+                        const sharedIds = newIds.intersection(oldIds);
+                        if(sharedIds.size > 0) {
+                            console.error({type: "Had shared ids", sharedIds});
+                            // TODO: In event of shared ids maybe do something smarter...
+                            return prevWaypoints;
+                        }
+
+                        return [...prevWaypoints, ...newWaypoints];
+                    });
 
                     // if(result.data.source) {
                     //     const value = newWaypoints.find(x => x.data.id === result.data.source);
@@ -113,6 +125,7 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
             >
                 Delete WayPoints
             </Button>
+            <Button onClick={() => alert("Not implemented")}>ReCenter Graph</Button>
         </ButtonGroup>
     )
 }

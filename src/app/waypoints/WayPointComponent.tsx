@@ -45,6 +45,7 @@ export default function WayPointComponent() {
     };
 
     const handleOpenEditDialog = (waypoint: WayPoint) => {
+        console.log(`Edit waypoint: ${waypoint.data.label}`)
         setEditRow(waypoint);
         onZoom(waypoint);
         setOpenEditDialog(true);
@@ -66,9 +67,13 @@ export default function WayPointComponent() {
     const cyFunction = useCallback<((cy: cytoscape.Core) => void)>((cy) => {
         cyRef.current = cy; // Store Cytoscape instance
         cy.on('select', 'node', function (evt) { // Or 'click' for desktop
-            const node = waypoints.find(x => x.data.id === evt.target.id());
+            const id = evt.target.id();
+            console.log("Edit: " + id)
+            const node = waypoints.find(x => x.data.id === id);
             if(node) {
                 handleOpenEditDialog(node);
+            } else {
+                console.error({type: "Node not found", id});
             }
         })
         cy.on('select', 'edge', function (evt) { // Or 'click' for desktop
@@ -79,7 +84,8 @@ export default function WayPointComponent() {
                 nodedata: edge.data(),
             });
         });
-    }, []);
+        cy.on('pan', (e) => { console.log(e.position)})
+    }, [waypoints]);
 
     return (
         <div>
