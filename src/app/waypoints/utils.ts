@@ -1,17 +1,25 @@
+import { Position } from "cytoscape";
 import { z } from "zod";
 
 export const WayPointOriginSchema = z.enum(["browser"]);
 export type WayPointOrigin = z.infer<typeof WayPointOriginSchema>;
 
+export const WayPointDataSchema = z.object({
+    id: z.string(),
+    label: z.string(),
+    height: z.number(),
+    createdTime: z.coerce.date(),
+    modifiedTime: z.coerce.date(),
+    origin: WayPointOriginSchema,
+    pinned: z.boolean().optional(),
+    color: z.string().optional(),
+    icon: z.string().optional(),
+});
+
+export type WayPointData = z.infer<typeof WayPointDataSchema>;
+
 export const WayPointJsonSchema = z.object({
-    data: z.object({
-        id: z.string(),
-        label: z.string(),
-        height: z.number(),
-        createdTime: z.coerce.date(),
-        modifiedTime: z.coerce.date(),
-        origin: WayPointOriginSchema,
-    }),
+    data: WayPointDataSchema,
     position: z.object({
         x: z.number(),
         y: z.number(),
@@ -20,6 +28,7 @@ export const WayPointJsonSchema = z.object({
 });
 
 export type WayPointJson = z.infer<typeof WayPointJsonSchema>;
+
 export const WayPointJsonsSchema = z.object({
     createdTime: z.coerce.date(),
     modifiedTime: z.coerce.date(),
@@ -27,21 +36,12 @@ export const WayPointJsonsSchema = z.object({
     destination: z.string().optional(),
     waypoints: z.array(WayPointJsonSchema),
 });
+
 export type WayPointsJson = z.infer<typeof WayPointJsonsSchema>;
 
 export type WayPoint = {
-    data: {
-        id: string,
-        label: string,
-        height: number,
-        createdTime: Date,
-        modifiedTime: Date,
-        origin: WayPointOrigin,
-    },
-    position: {
-        x: number,
-        y: number, // actually z
-    },
+    data: WayPointData,
+    position: Position,
     connection?: WayPoint,
 }
 
@@ -77,6 +77,9 @@ export function deserializeWayPoints(waypoints: WayPointsJson): [WayPoint[], Set
                 modifiedTime: row.data.modifiedTime,
                 createdTime: row.data.createdTime,
                 origin: "browser",
+                pinned: row.data.pinned || false, // TODO: Remove
+                color: row.data.color || "red", // TODO: Remove
+                icon: row.data.icon || "circle", // TODO: Remove
             },
         };
         results.push(newRow);
@@ -142,3 +145,28 @@ export type PathStep = {
     to: cytoscape.NodeSingular;
     distance: number;
 };
+
+export function convertNodeToWayPoint(node: cytoscape.NodeSingular): WayPoint {
+    const position = node.position();
+    const data = WayPointDataSchema.parse({
+        id: node.data("id"),
+        label: node.data("label"),
+        height: node.data("height"),
+        createdTime: node.data("createdTime"),
+        modifiedTime: node.data("modifiedTime"),
+        origin: node.data("origin"),
+        pinned: node.data("pinned"),
+        color: node.data("color"),
+        icon: node.data("icon"),
+    });
+
+    return {
+        data: data,
+        position: position,
+    }
+}
+
+export function getWaypointCommand({data: {icon, height: y, pinned, color, label}, position: {x, y: z}}: WayPoint): string {
+    return `/waypoint addati ${icon} ${x} ${y} ${z} ${pinned ? "true": "false"} ${color} ${label}`;
+}
+    
