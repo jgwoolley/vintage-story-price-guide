@@ -31,7 +31,7 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                         setCreatedTime(result.data.createdTime);
                     }
 
-                    if(createdTime != undefined) {
+                    if(modifiedTime != undefined) {
                         setModifiedTime(result.data.modifiedTime);
                     }
 
@@ -65,14 +65,14 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                 // Handle non-JSON or corrupted files
             }
         }
-    }, [setWaypoints]);
+    }, [setWaypoints, createdTime, modifiedTime]);
 
     const downloadWaypoints = useCallback<() => void>(() => {
         const results = serializeWayPoints({createdTime, modifiedTime, waypoints, sourceNode, destinationNode});
         console.log({ type: "downloadWaypoints", waypoints, results }); 
         const resultsText = JSON.stringify(results, null, 2);
         downloadFile(new File([resultsText], "waypoints.json")); // Prettier JSON output
-    }, [waypoints, sourceNode, destinationNode]);
+    }, [waypoints, sourceNode, destinationNode, createdTime, modifiedTime]);
 
     return (
         <ButtonGroup>

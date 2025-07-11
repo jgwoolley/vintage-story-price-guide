@@ -2,7 +2,7 @@
 
 import useCytoscape, { UseCytoscapeParams } from "@/hooks/useCytoscape";
 import { Box } from "@mui/material";
-import { CSSProperties, useRef } from "react";
+import { useRef } from "react";
 
 export type CytoscapeComponent = { 
     // className?: string | undefined,

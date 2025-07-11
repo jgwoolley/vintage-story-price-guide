@@ -106,7 +106,7 @@ export function useWayPointGraph(props: UseWayPointGraphProps) {
             // TODO: This error might be happening due to issues serializing the source / dest objects...
             console.error({ e, sourceNode, destinationNode });
         }
-    }, [cy, setPathSteps, sourceNode, destinationNode, waypoints]); // Re-run when these dependencies change
+    }, [cy, setPathSteps, sourceNode, destinationNode, waypoints, props]); // Re-run when these dependencies change
 
     /**
      * useEffect hook for setting initial source/destination nodes.

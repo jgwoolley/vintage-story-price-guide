@@ -51,7 +51,7 @@ export default function WayPointComponent() {
         cy.fit(eles, padding);
     };
 
-    const onZoom = (waypoint: WayPoint) => {
+    const onZoom = useCallback((waypoint: WayPoint) => {
         const cy = cyRef.current;
         if (cy == undefined) {
             return;
@@ -62,13 +62,13 @@ export default function WayPointComponent() {
             y: (cy.height() / 2) - (waypoint.position.y * currentZoom),
         }
         cy.pan(newPosition);
-    };
+    }, [cyRef.current]);
 
-    const handleOpenEditDialog = (waypoint: WayPoint) => {
+    const handleOpenEditDialog = useCallback((waypoint: WayPoint) => {
         setEditRow(waypoint);
         onZoom(waypoint);
         setOpenEditDialog(true);
-    };
+    }, [setEditRow, onZoom, setOpenEditDialog]);
 
     const elements = useWayPointEdges({ waypoints });
     useWayPointGraph({
@@ -99,7 +99,7 @@ export default function WayPointComponent() {
                 nodedata: edge.data(),
             });
         });
-    }, []);
+    }, [waypoints, handleOpenEditDialog]);
 
     const [currentTab, setCurrentTab] = useState(0);
 

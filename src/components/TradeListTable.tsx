@@ -130,10 +130,6 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
         tradelists,
     ]);
 
-    if (langLut == undefined) {
-        return <p>Given Language Code doesn&lsquo;t exist {lang}.</p>
-    }
-
     const columns = useMemo<GridColDef<Trade>[]>(() => {
         return [
             {
@@ -183,6 +179,10 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
     }, [
         // traderNames
     ]);
+
+    if (langLut == undefined) {
+        return <p>Given Language Code doesn&lsquo;t exist {lang}.</p>
+    }
 
     return (
         <>

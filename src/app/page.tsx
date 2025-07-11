@@ -6,7 +6,7 @@ type ToolCardProps = {
   name: string,
   description: string,
   href: string,
-  IconComponent: React.ComponentType<any>,
+  IconComponent: React.ComponentType,
 }
 
 function ToolCard({ name, description, href, IconComponent }: ToolCardProps) {
