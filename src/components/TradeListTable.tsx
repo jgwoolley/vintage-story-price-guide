@@ -1,8 +1,9 @@
 'use client';
 
 import { TradeListElement, TradeListElementList, TraderList, VsServer } from "@/utils/schema";
+import { Autocomplete } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export type TradeListTableProps = {
     lang: string,
