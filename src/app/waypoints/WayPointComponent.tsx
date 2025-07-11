@@ -2,7 +2,7 @@
 
 import CytoscapeComponent from "@/components/CytoscapeComponent";
 import { Box, Tab, Tabs } from "@mui/material";
-import cytoscape from "cytoscape";
+import cytoscape, { Position } from "cytoscape";
 import { PropsWithChildren, useCallback, useRef, useState } from "react";
 import PathStepsTable from "./PathStepsTable";
 import useWayPointEdges from "./useWayPointEdges";
@@ -51,12 +51,18 @@ export default function WayPointComponent() {
         cy.fit(eles, padding);
     };
 
+    // Wrap in useCallback?
     const onZoom = (waypoint: WayPoint) => {
         const cy = cyRef.current;
         if (cy == undefined) {
             return;
         }
-        cy.fit(cy.$id(waypoint.data.id));
+        const currentZoom = cy.zoom();
+        const newPosition: Position = {
+            x: (cy.width() / 2) - (waypoint.position.x * currentZoom),
+            y: (cy.height() / 2) - (waypoint.position.y * currentZoom),
+        }
+        cy.pan(newPosition);
     };
 
     const handleOpenEditDialog = (waypoint: WayPoint) => {
@@ -103,7 +109,7 @@ export default function WayPointComponent() {
     };
 
     return (
-        <div >
+        <div>
             <h3>WayPoints</h3>
             <CytoscapeComponent
                 elements={elements}
@@ -112,14 +118,8 @@ export default function WayPointComponent() {
                 maxZoom={2}
                 boxSelectionEnabled={false} // Disable box selection for cleaner interaction
                 wheelSensitivity={0.5} // Adjust zoom sensitivity
-                className="w-full" // Ensure it takes full width
                 autolock={true}
                 cy={cyFunction}
-                style={{
-                    border: "solid #ddd",
-                    height: "50vh",
-                    width: "50vw",
-                }} 
             />
 
             {/* Action Buttons */}

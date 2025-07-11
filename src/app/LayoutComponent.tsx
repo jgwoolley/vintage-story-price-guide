@@ -1,7 +1,7 @@
 'use client';
 
 import siteInfo from "@/utils/siteInfo";
-import { WaterDrop } from "@mui/icons-material";
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { AppBar, Container, Menu, MenuItem, Stack, Toolbar, Tooltip, Typography } from "@mui/material";
 import Link from "next/link";
 import { PropsWithChildren, useState } from "react";
@@ -60,7 +60,7 @@ function LayoutAppBar() {
         <AppBar position="static">
             <Container maxWidth="xl">
                 <Toolbar disableGutters >
-                    <WaterDrop sx={{ mr: 1 }} />
+                    <MenuBookIcon sx={{ mr: 1 }} />
                     <Typography variant="h6" color="inherit" component="div">
                         <Link style={{ color: "inherit", textDecoration: "inherit" }} href="/">{siteInfo.title}</Link>
                     </Typography>

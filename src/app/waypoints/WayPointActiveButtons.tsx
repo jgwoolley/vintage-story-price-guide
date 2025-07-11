@@ -24,13 +24,13 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
             try {
                 const data: unknown = JSON.parse(await file.text());
                 const result = WayPointJsonsSchema.safeParse(data);
-                
+
                 if (result.success) {
-                    if(createdTime != undefined) {
+                    if (createdTime != undefined) {
                         setCreatedTime(result.data.createdTime);
                     }
 
-                    if(createdTime != undefined) {
+                    if (createdTime != undefined) {
                         setModifiedTime(result.data.modifiedTime);
                     }
 
@@ -67,20 +67,20 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
     }, [setWaypoints]);
 
     const downloadWaypoints = useCallback<() => void>(() => {
-        const results = serializeWayPoints({createdTime, modifiedTime, waypoints, sourceNode, destinationNode});
-        console.log({ type: "downloadWaypoints", waypoints, results }); 
+        const results = serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode });
+        console.log({ type: "downloadWaypoints", waypoints, results });
         const resultsText = JSON.stringify(results, null, 2);
         downloadFile(new File([resultsText], "waypoints.json")); // Prettier JSON output
     }, [waypoints, sourceNode, destinationNode]);
 
     return (
-        <ButtonGroup>
+        <ButtonGroup >
             <FileUploader handleFiles={uploadWaypoints}>Upload Waypoints</FileUploader>
             <Button
                 onClick={() => {
                     // Ensure new waypoint gets a unique ID
                     const newId = `new-${Date.now()}-${waypoints.length}-${Math.random().toString(36).substring(2, 9)}`; // More robust unique ID
-                    
+
                     const newRow: WayPoint = {
                         data: {
                             id: newId,
@@ -95,7 +95,7 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                             y: 0,
                         }
                     }
-                    
+
                     setWaypoints(prevWaypoints => [...prevWaypoints, newRow]);
                 }}
             >
