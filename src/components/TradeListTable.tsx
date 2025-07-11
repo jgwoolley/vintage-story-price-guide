@@ -66,7 +66,7 @@ function determineItemName({ langLut, trade }: { vsServer: VsServer, langLut?: R
         for (const key of Object.keys(langLut)) {
             if (key.endsWith("*") && trade.code.startsWith(key.substring(0, key.length - 1))) {
                 const result = langLut[itemLuv];
-                if(result != undefined) {
+                if (result != undefined) {
                     return [result, false];
                 }
             }
@@ -77,49 +77,16 @@ function determineItemName({ langLut, trade }: { vsServer: VsServer, langLut?: R
     return [result, false];
 }
 
-const columns: GridColDef<Trade>[] = [
-    {
-        field: 'code',
-        headerName: 'code',
-    },
-    {
-        field: 'name',
-        headerName: 'name',
-    },
-    {
-        field: 'traderName',
-        headerName: 'traderName',
-    },
-    {
-        field: 'traderType',
-        headerName: 'traderType',
-    },
-    {
-        field: 'type',
-        headerName: 'type',
-    },
-    {
-        field: 'stacksize',
-        headerName: 'stacksize',
-    },
-    
-    {
-        field: 'min',
-        headerName: 'min',
-    },
-
-    {
-        field: 'max',
-        headerName: 'max',
-    },
-];
-
 export default function TradeListTable({ lang, vsServer }: TradeListTableProps) {
     const { tradelists } = vsServer.assets.survival.config;
     const langLut = vsServer.assets.game.lang.lut.get(lang);
 
-    const trades = useMemo(() => {
+    const [ 
+        trades, 
+        // traderNames 
+    ] = useMemo(() => {
         const trades: Trade[] = [];
+        const traderNames = new Set<string>();
 
         tradelists.forEach(trader => {
             function processList(e: TradeListElementList, tradeType: TradeType) {
@@ -129,6 +96,7 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
                         langLut,
                         trader,
                     });
+                    traderNames.add(traderName);
 
                     const [itemName, nameError] = determineItemName({
                         vsServer,
@@ -155,7 +123,7 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
             processList(trader.selling, "selling");
         })
         trades.sort((a, b) => a.code.localeCompare(b.code));
-        return trades;
+        return [trades, traderNames];
     }, [
         vsServer,
         langLut,
@@ -166,15 +134,70 @@ export default function TradeListTable({ lang, vsServer }: TradeListTableProps) 
         return <p>Given Language Code doesn&lsquo;t exist {lang}.</p>
     }
 
+    const columns = useMemo<GridColDef<Trade>[]>(() => {
+        return [
+            {
+                field: 'code',
+                headerName: 'code',
+            },
+            {
+                field: 'name',
+                headerName: 'name',
+            },
+            {
+                field: 'traderName',
+                headerName: 'traderName',
+                // type: "singleSelect",
+                // valueOptions: traderNames,
+            },
+            {
+                field: 'traderType',
+                headerName: 'traderType',
+                type: "singleSelect",
+                valueOptions: ["trader", "villager"],
+            },
+            {
+                field: 'type',
+                headerName: 'type',
+                type: "singleSelect",
+                valueOptions: ["selling", "buying"],
+            },
+            {
+                field: 'stacksize',
+                headerName: 'stacksize',
+            },
+            {
+                field: 'min',
+                headerName: 'min',
+            },
+            {
+                field: 'max',
+                headerName: 'max',
+            },
+            {
+                field: 'nameError',
+                headerName: 'nameError',
+                type: "boolean",
+            },
+        ];
+    }, [
+        // traderNames
+    ]);
+
     return (
         <>
-            <DataGrid 
+            <DataGrid
                 columns={columns}
                 rows={trades}
                 getRowId={x => JSON.stringify(x)}
-                initialState={{columns: {columnVisibilityModel: { 
-                    code: false ,
-                }}}}
+                initialState={{
+                    columns: {
+                        columnVisibilityModel: {
+                            code: false,
+                            nameError: false,
+                        }
+                    }
+                }}
             />
         </>
     )

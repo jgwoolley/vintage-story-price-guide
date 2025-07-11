@@ -1,11 +1,12 @@
 'use client';
 
 import useCytoscape, { UseCytoscapeParams } from "@/hooks/useCytoscape";
+import { Box } from "@mui/material";
 import { CSSProperties, useRef } from "react";
 
 export type CytoscapeComponent = { 
-    className?: string | undefined,
-    style?: CSSProperties | undefined,
+    // className?: string | undefined,
+    // style?: CSSProperties | undefined,
 } & Omit<UseCytoscapeParams, "container">;
 
 export default function CytoscapeComponent(props: CytoscapeComponent) {
@@ -16,6 +17,6 @@ export default function CytoscapeComponent(props: CytoscapeComponent) {
     });
 
     return (
-        <div ref={ref} className={props.className} style={props.style}></div>
+         <Box ref={ref} sx={{ width: '100%', height: '50vh', border: "solid #ddd" }} />
     )
 }

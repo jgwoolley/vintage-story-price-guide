@@ -11,9 +11,10 @@ type WayPointsDataGridProps = {
     setRows: Dispatch<SetStateAction<WayPoint[]>>,
     editRow: WayPoint,
     setEditRow: Dispatch<SetStateAction<WayPoint>>,
+    onZoom: (waypoint: WayPoint) => void,
 }
 
-export default function WayPointEditDialog({ rows, setRows, open, setOpen, editRow, setEditRow }: WayPointsDataGridProps) {
+export default function WayPointEditDialog({ rows, setRows, open, setOpen, editRow, setEditRow, onZoom }: WayPointsDataGridProps) {
     const handleClose = () => {
         setOpen(false);
     };
@@ -182,10 +183,12 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                         renderInput={(params) => <TextField {...params} label="Connection" />}
                     />
                     <DialogActions>
-                        <ButtonGroup>
-                        <Button onClick={handleClose}>Cancel</Button>
-                        <Button onClick={handleDelete}>Remove</Button>
-                        <Button type="submit">Submit</Button></ButtonGroup>
+                        
+                            <Button onClick={handleClose}>Cancel</Button>
+                            <Button onClick={handleDelete}>Remove</Button>
+                            <Button onClick={() => onZoom(editRow)}>Zoom</Button>
+                            <Button type="submit">Submit</Button>
+                        
                     </DialogActions>
                 </Box>
             </DialogContent>

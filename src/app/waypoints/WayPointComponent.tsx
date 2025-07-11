@@ -112,14 +112,8 @@ export default function WayPointComponent() {
                 maxZoom={2}
                 boxSelectionEnabled={false} // Disable box selection for cleaner interaction
                 wheelSensitivity={0.5} // Adjust zoom sensitivity
-                className="w-full" // Ensure it takes full width
                 autolock={true}
                 cy={cyFunction}
-                style={{
-                    border: "solid #ddd",
-                    height: "50vh",
-                    width: "50vw",
-                }} 
             />
 
             {/* Action Buttons */}
@@ -168,6 +162,7 @@ export default function WayPointComponent() {
                 setRows={setWayPoints}
                 editRow={editRow}
                 setEditRow={setEditRow} // TODO: Move set source / dest into dialog?
+                onZoom={onZoom}
             />
         </div>
     );

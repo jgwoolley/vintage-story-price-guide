@@ -85,7 +85,7 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
                     id: edge.id(),
                     from: fromNode,
                     to: toNode,
-                    distance: edge.data('weight') || -1,
+                    distance: edge.data('weight') || 0,
                 });
             })
         }
