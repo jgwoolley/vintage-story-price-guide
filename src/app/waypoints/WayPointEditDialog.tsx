@@ -3,7 +3,11 @@
 import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { Dispatch, SetStateAction, useCallback, useContext } from "react";
 import { getWaypointCommand, stringifyWayPoint, WayPoint } from "./utils";
-import { SubmitSnackbarContext } from "@/components/SnackbarProvider";
+import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
+
+const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
+    console.log({key, value, data});
+}
 
 type WayPointsDataGridProps = {
     open: boolean,
@@ -18,26 +22,26 @@ type WayPointsDataGridProps = {
 }
 
 export default function WayPointEditDialog({ rows, setRows, open, setOpen, editRow, setEditRow, setSourceNode, setDestinationNode, onZoomWayPoint }: WayPointsDataGridProps) {
-    const submitMessage = useContext(SubmitSnackbarContext);
+    // const submitSnackbarMessage = useContext(SubmitSnackbarContext);
     
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setOpen(false);
-    };
+    }, [setOpen]);
 
-    const handleDelete = () => {
+    const handleDelete = useCallback(() => {
         handleClose();
         setRows(prev => prev.filter(prevRow => prevRow.data.id !== editRow.data.id));
-    }
+    }, [handleClose, setRows, editRow]);
 
     const onSubmit = useCallback((event: React.FormEvent) => {
         event.preventDefault();
         setRows(prev => {
             const results = prev.map(prevRow => prevRow.data.id === editRow.data.id ? editRow : prevRow);
-            submitMessage("Submitted Changes", "success", results);
+            submitSnackbarMessage("Submitted Changes", "success", results);
             handleClose();
             return results;
         });
-    }, [setRows]);
+    }, [setRows, editRow, handleClose, submitSnackbarMessage]);
 
     return (
         <Dialog open={open} onClose={handleClose}>

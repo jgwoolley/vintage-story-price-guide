@@ -2,7 +2,7 @@
 
 import CytoscapeComponent from "@/components/CytoscapeComponent";
 import cytoscape, { Position } from "cytoscape";
-import { useCallback, useContext, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import PathStepsTable, { OnZoomNode } from "./PathStepsTable";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
@@ -11,18 +11,32 @@ import { PathStep, WayPoint } from "./utils";
 import WayPointActiveButtons from "./WayPointActiveButtons";
 import WayPointEditDialog from "./WayPointEditDialog";
 import WayPointsDataGrid from "./WayPointsDataGrid";
-import { SubmitSnackbarContext } from "@/components/SnackbarProvider";
+import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
+
+const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
+    console.log({key, value, data});
+}
 
 export default function WayPointComponent() {
     const [waypoints, setWayPoints] = useState<WayPoint[]>([]);
     // Initialize source/destination to undefined, let useEffect handle initial assignment
-    const [sourceNode, setSourceNode] = useState<WayPoint | undefined>(undefined);
-    const [destinationNode, setDestinationNode] = useState<WayPoint | undefined>(undefined);
+    const [sourceNode, setSourceNode] = useState<WayPoint | undefined>(() => {
+        if(waypoints.length > 2) {
+            return waypoints[0];
+        }
+        return undefined;
+    });
+    const [destinationNode, setDestinationNode] = useState<WayPoint | undefined>(() => {
+        if(waypoints.length > 2) {
+            return waypoints[1];
+        }
+        return undefined;
+    });
     const [pathSteps, setPathSteps] = useState<PathStep[]>([]); // New state for path details
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [editRow, setEditRow] = useState<WayPoint>({ position: { x: 0, y: 0 }, data: { id: "", label: "", height: 0, createdTime: new Date(), modifiedTime: new Date(), origin: "browser" } });
     const cyRef = useRef<cytoscape.Core | null>(null); // Ref to hold the Cytoscape instance
-    const submitMessage = useContext(SubmitSnackbarContext);
+    // const submitMessage = useContext(SubmitSnackbarContext);
 
     const onZoomNode = useCallback<OnZoomNode>((eles, padding) => {
         const cy = cyRef.current;
@@ -55,6 +69,14 @@ export default function WayPointComponent() {
         setOpenEditDialog(true);
     }, [setEditRow, setOpenEditDialog]);
 
+    // This useEffect will now handle clearing source/destination if waypoints shrink
+    useEffect(() => {
+        if (waypoints.length <= 2) {
+            setSourceNode(undefined);
+            setDestinationNode(undefined);
+        }
+    }, [waypoints]); // Only re-run if waypoints array reference changes
+
     const elements = useWayPointEdges({ waypoints });
     useWayPointGraph({
         cy: cyRef.current,
@@ -64,7 +86,6 @@ export default function WayPointComponent() {
         setDestinationNode,
         setPathSteps,
         waypoints,
-        submitMessage,
     });
 
     const stylesheet = useWayPointStylesheet();

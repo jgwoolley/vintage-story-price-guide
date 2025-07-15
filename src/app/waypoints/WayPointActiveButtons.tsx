@@ -1,11 +1,15 @@
 'use client';
 
+import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
 import { downloadFile } from "@/utils/downloadFile";
 import { Button, ButtonGroup } from "@mui/material";
-import { Dispatch, SetStateAction, useCallback, useContext, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import FileUploader from "./FileUploader";
 import { deserializeWayPoints, serializeWayPoints, WayPoint, WayPointJsonsSchema } from "./utils";
-import { SubmitSnackbarContext } from "@/components/SnackbarProvider";
+
+const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
+    console.log({key, value, data});
+}
 
 export type WayPointActiveButtonsProps = {
     sourceNode: WayPoint | undefined,
@@ -20,7 +24,7 @@ export type WayPointActiveButtonsProps = {
 export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, destinationNode, onZoomPosition }: WayPointActiveButtonsProps) {
     const [createdTime, setCreatedTime] = useState<Date>();
     const [modifiedTime, setModifiedTime] = useState<Date>();
-    const submitMessage = useContext(SubmitSnackbarContext);
+    // const submitSnackbarMessage = useContext(SubmitSnackbarContext);
 
     const uploadWaypoints = useCallback<(files: FileList) => void>(async (files: FileList) => {
         for (const file of files) {
@@ -49,11 +53,11 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                         const oldIds = new Set(prevWaypoints.map(x => x.data.id));
                         const sharedIds = newIds.intersection(oldIds);
                         if(sharedIds.size > 0) {
-                            submitMessage("Failed to Upload WayPoints: Multiple WayPoints share same internal id", "error", {type: "Had shared ids", sharedIds})
+                            submitSnackbarMessage("Failed to Upload WayPoints: Multiple WayPoints share same internal id", "error", {type: "Had shared ids", sharedIds})
                             // TODO: In event of shared ids maybe do something smarter...
                             return prevWaypoints;
                         }
-                        submitMessage("Uploaded WayPoints", "success", { type: "uploadWaypoints", newWaypoints });
+                        submitSnackbarMessage("Uploaded WayPoints", "success", { type: "uploadWaypoints", newWaypoints });
 
                         return [...prevWaypoints, ...newWaypoints];
                     });
@@ -72,20 +76,20 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                     // }
 
                 } else {
-                    submitMessage("Failed to Upload WayPoints", "error", result.error);
+                    submitSnackbarMessage("Failed to Upload WayPoints", "error", result.error);
                 }
             } catch (error) {
-                submitMessage("Failed to Upload WayPoints", "error", error);
+                submitSnackbarMessage("Failed to Upload WayPoints", "error", error);
             }
         }
-    }, [setWaypoints]);
+    }, [setWaypoints, submitSnackbarMessage, createdTime]);
 
     const downloadWaypoints = useCallback<() => void>(() => {
         const results = serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode });
         console.log({ type: "downloadWaypoints", waypoints, results });
         const resultsText = JSON.stringify(results, null, 2);
         downloadFile(new File([resultsText], "waypoints.json")); // Prettier JSON output
-    }, [waypoints, sourceNode, destinationNode]);
+    }, [waypoints, sourceNode, destinationNode, createdTime, modifiedTime]);
 
     return (
         <ButtonGroup >

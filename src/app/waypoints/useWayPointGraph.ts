@@ -11,10 +11,23 @@ export type UseWayPointGraphProps = {
     setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     setPathSteps: Dispatch<SetStateAction<PathStep[]>>,
     waypoints: WayPoint[],
-    submitMessage: SubmitSnackbarMessage,
+    // submitMessage: SubmitSnackbarMessage,
 };
 
-function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoints, submitMessage }: UseWayPointGraphProps) {
+export type CalculateGraphProps = {
+    cy: cytoscape.Core | null,
+    sourceNode: WayPoint | undefined,
+    destinationNode: WayPoint | undefined,
+    setPathSteps: Dispatch<SetStateAction<PathStep[]>>,
+    waypoints: WayPoint[],
+    // submitSnackbarMessage: SubmitSnackbarMessage,
+};
+
+const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
+    console.log({key, value, data});
+}
+
+function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoints }: CalculateGraphProps) {
     if (cy == undefined) {
         return;
     }
@@ -26,25 +39,34 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
         return;
     }
 
-    if (sourceNode == undefined || destinationNode == undefined || sourceNode.data.id === destinationNode.data.id) {
-        // If no source/destination is selected or they are the same, show all edges
-        cy.edges("edge[weight != 0]").removeClass('hidden-edge');
-        setPathSteps([]);
-        return;
+    const sourceCyNode = sourceNode ? cy.$(`#${sourceNode.data.id}`) : cy.collection();
+    const destinationCyNode = destinationNode ? cy.$(`#${destinationNode.data.id}`) : cy.collection();
+
+    if (sourceNode == undefined || sourceCyNode.empty() || destinationNode == undefined || destinationCyNode.empty()) {
+        // Only submit a message if *after* a path was previously found, or if nodes were expected to exist.
+        // For initial renders where nodes might not be ready, simply return without a message.
+        // This is the key to avoid the render-triggered setState.
+        // We'll rely on the main useEffect dependencies to re-trigger when nodes become available.
+
+        // If source or destination became undefined, clear path steps and show all edges
+        if (sourceNode === undefined || destinationNode === undefined || sourceNode.data.id === destinationNode.data.id) {
+            cy.edges("edge[weight != 0]").removeClass('hidden-edge');
+            setPathSteps([]);
+        }
+        return; // Do not proceed or submit message if nodes aren't ready
     }
 
     cy.edges().addClass('hidden-edge'); // Temporarily hide all edges for path highlighting
-    const source = cy.$(`#${sourceNode.data.id}`);
-    const destination = cy.$(`#${destinationNode.data.id}`);
 
-    if (source.length === 0 || destination.length === 0) {
-        submitMessage("Failed to calculate graph", "error", { source, destination, sourceNode, destinationNode, sourceId: sourceNode.data.id, destinationId: destinationNode.data.id })
+
+    if (sourceCyNode.length === 0 || destinationCyNode.length === 0) {
+        submitSnackbarMessage("Failed to calculate graph", "error", { source: sourceCyNode, destination: destinationCyNode, sourceNode, destinationNode, sourceId: sourceNode.data.id, destinationId: destinationNode.data.id })
         return;
     }
 
     const aStarResult = cy.elements().aStar({
-        root: source,
-        goal: destination,
+        root: sourceCyNode,
+        goal: destinationCyNode,
         // root: `#${sourceNode.data.id}`,
         // goal: `#${destinationNode.data.id}`,
         weight: edges => {
@@ -59,7 +81,7 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
     const path = aStarResult.path;
 
     if(path == undefined|| path.length <= 0 || aStarResult.found === false) {
-        submitMessage("No path found between selected nodes. Showing all edges.", "error");
+        submitSnackbarMessage("No path found between selected nodes. Showing all edges.", "error");
         cy.edges("edge[weight != 0]").removeClass('hidden-edge'); // If no path, show all edges again
         cy.getElementById(sourceNode.data.id).addClass('source-node');
         if (destinationNode) {
@@ -96,36 +118,28 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
     cy.fit(path);
 }
 
-export function useWayPointGraph(props: UseWayPointGraphProps) {
-    const { cy, sourceNode, setSourceNode, destinationNode, setDestinationNode, setPathSteps, waypoints } = props;
+export function useWayPointGraph({ cy, sourceNode, setSourceNode, destinationNode, setDestinationNode, setPathSteps, waypoints }: UseWayPointGraphProps) {    
     /**
      * useEffect hook for handling shortest path highlighting and edge visibility.
      */
     useEffect(() => {
         try {
-            calculateGraph(props);
+            calculateGraph({
+                cy,
+                setPathSteps, 
+                sourceNode, 
+                destinationNode, 
+                waypoints,
+            });
         } catch (e) {
             // TODO: This error might be happening due to issues serializing the source / dest objects...
             console.error({ e, sourceNode, destinationNode });
         }
-    }, [cy, setPathSteps, sourceNode, destinationNode, waypoints]); // Re-run when these dependencies change
-
-    /**
-     * useEffect hook for setting initial source/destination nodes.
-     */
-    useEffect(() => {
-        // Set initial source/destination if waypoints exist and they are not already set
-        if (waypoints.length > 2) {
-            if (!sourceNode) {
-                setSourceNode(waypoints[0]);
-            }
-            if (!destinationNode) {
-                setDestinationNode(waypoints[1]);
-            }
-        } else {
-            // If waypoints become empty, clear source/destination
-            setSourceNode(undefined);
-            setDestinationNode(undefined);
-        }
-    }, [waypoints, sourceNode, setSourceNode, destinationNode, setDestinationNode]); // Dependencies for this effect
+    }, [
+        cy,
+        setPathSteps, 
+        sourceNode, 
+        destinationNode, 
+        waypoints,
+    ]); // Re-run when these dependencies change
 }
