@@ -1,12 +1,12 @@
 'use client';
 
-import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
-import { Dispatch, SetStateAction, useCallback, useContext } from "react";
-import { getWaypointCommand, stringifyWayPoint, WayPoint } from "./utils";
+import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, TextFieldProps } from "@mui/material";
+import { Dispatch, SetStateAction, useCallback, useContext, useState } from "react";
+import { getWaypointCommand, stringifyWayPoint, WayPoint, WayPointInput } from "./utils";
 import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
 
 const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
-    console.log({key, value, data});
+    console.log({ key, value, data });
 }
 
 type WayPointsDataGridProps = {
@@ -14,16 +14,56 @@ type WayPointsDataGridProps = {
     setOpen: Dispatch<SetStateAction<boolean>>
     rows: WayPoint[],
     setRows: Dispatch<SetStateAction<WayPoint[]>>,
-    editRow: WayPoint,
-    setEditRow: Dispatch<SetStateAction<WayPoint>>,
+    editRow: WayPointInput,
+    setEditRow: Dispatch<SetStateAction<WayPointInput>>,
     setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     onZoomWayPoint: (waypoint: WayPoint) => void,
 }
 
+type NumericTextInputProps = {
+    label: string, 
+    value: string, 
+    onUpdate: (waypoint: WayPointInput, value: string) => void,
+    setEditRow: Dispatch<SetStateAction<WayPointInput>>,
+}
+
+function NumericTextInput({ label, value, onUpdate, setEditRow} : NumericTextInputProps) {
+    const [ isError, setIsError ] = useState(false);
+
+    return (
+        <TextField 
+            required
+            id={label}
+            label={label}
+            type="text"
+            variant="standard"
+            value={value}
+            error={isError}
+            helperText={isError ? "Please enter a valid number.": undefined }
+            onChange={(x) => {
+                const value = x.target.value;
+                const parsedValue = parseFloat(value);
+                setIsError(isNaN(parsedValue));
+                setEditRow(prev => {
+                    const newRow: WayPointInput = {
+                        ...prev,
+                    };
+                    onUpdate(newRow, value);
+                    return newRow;
+                });
+            }}
+        />
+    )
+}
+
 export default function WayPointEditDialog({ rows, setRows, open, setOpen, editRow, setEditRow, setSourceNode, setDestinationNode, onZoomWayPoint }: WayPointsDataGridProps) {
     // const submitSnackbarMessage = useContext(SubmitSnackbarContext);
-    
+
+    const [ isXError, setIsXError ] = useState<boolean>(false);
+    const [ isYError, setIsYError ] = useState<boolean>(false);
+    const [ isZError , setIsZError ] = useState<boolean>(false);
+
     const handleClose = useCallback(() => {
         setOpen(false);
     }, [setOpen]);
@@ -36,7 +76,42 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
     const onSubmit = useCallback((event: React.FormEvent) => {
         event.preventDefault();
         setRows(prev => {
-            const results = prev.map(prevRow => prevRow.data.id === editRow.data.id ? editRow : prevRow);
+            const results = prev.map(prevRow => {
+                if (prevRow.data.id === editRow.data.id) {
+                    return {
+                        position: {
+                            x: parseFloat(editRow.position.x),
+                            y: parseFloat(editRow.position.y),
+                        },
+                        data: {
+                            id: editRow.data.id,
+                            label: editRow.data.label,
+                            height: parseFloat(editRow.data.height),
+                            createdTime: editRow.data.createdTime,
+                            modifiedTime: editRow.data.modifiedTime,
+                            origin: editRow.data.origin,
+                            pinned: editRow.data.pinned,
+                            color: editRow.data.color,
+                            icon: editRow.data.icon,
+                        },
+                        connection: editRow.connection,
+                    };
+                } else if(prevRow.data.id === editRow.connection?.data.id) {
+                    const newConnection = rows.find(x => x.data.id === editRow.data.id);
+                    return  {
+                        ...prevRow,
+                        connection: newConnection,
+                    };
+                } else if(prevRow.data.id === editRow.connection?.connection?.data.id) {
+                    return  {
+                        ...prevRow,
+                        connection: undefined,
+                    };
+                } 
+                else {
+                    return prevRow;
+                }
+            });
             submitSnackbarMessage("Submitted Changes", "success", results);
             handleClose();
             return results;
@@ -78,7 +153,7 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                         value={editRow.data.label}
                         onChange={(x) => {
                             setEditRow(prev => {
-                                const newRow: WayPoint = {
+                                const newRow: WayPointInput = {
                                     ...prev,
                                 };
                                 newRow.data.label = x.target.value;
@@ -86,69 +161,29 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                             });
                         }}
                     />
-                    <TextField
-                        required
-                        id="x"
+                    <NumericTextInput 
                         label="x"
-                        type="number"
-                        variant="standard"
-                        value={editRow.position.x}
-                        onChange={(x) => {
-                            const value = x.target.value.length === 0 ? 0 : parseFloat(x.target.value);
-                            if (value == undefined || isNaN(value)) {
-                                return;
-                            }
-
-                            setEditRow(prev => {
-                                const newRow: WayPoint = {
-                                    ...prev,
-                                };
-                                newRow.position.x = value;
-                                return newRow;
-                            });
-                        }}
+                        value={editRow.position.x} 
+                        onUpdate={(waypoint, value) => {
+                            waypoint.position.x = value;
+                        }} 
+                        setEditRow={setEditRow}                    
                     />
-                    <TextField
-                        required
-                        id="y"
+                    <NumericTextInput 
                         label="y"
-                        variant="standard"
-                        type="number"
-                        value={editRow.data.height}
-                        onChange={(x) => {
-                            const value = x.target.value.length === 0 ? 0 : parseFloat(x.target.value);
-                            if (value == undefined || isNaN(value)) {
-                                return;
-                            }
-                            setEditRow(prev => {
-                                const newRow: WayPoint = {
-                                    ...prev,
-                                };
-                                newRow.data.height = value;
-                                return newRow;
-                            });
-                        }}
+                        value={editRow.data.height} 
+                        onUpdate={(waypoint, value) => {
+                            waypoint.data.height = value;
+                        }} 
+                        setEditRow={setEditRow}                    
                     />
-                    <TextField
-                        required
-                        id="z"
+                    <NumericTextInput 
                         label="z"
-                        variant="standard"
-                        type="number"
-                        value={editRow.position.y}
-                        onChange={(x) => {
-                            const value = x.target.value.length === 0 ? 0 : parseFloat(x.target.value);
-                            if (value == undefined || isNaN(value)) {
-                                return;
-                            }
-                            setEditRow(prev => {
-                                const newRow: WayPoint = {
-                                    ...prev,
-                                };
-                                newRow.position.y = value;
-                                return newRow;
-                            });
-                        }}
+                        value={editRow.position.y} 
+                        onUpdate={(waypoint, value) => {
+                            waypoint.position.y = value;
+                        }} 
+                        setEditRow={setEditRow}                    
                     />
                     <TextField
                         margin="dense"
@@ -187,22 +222,41 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                         sx={{ width: 300 }}
                         value={editRow.connection ? editRow.connection : null}
                         onChange={(_, newValue) => {
-                            // TODO: This doesn't seem to work...
-                            if (newValue != undefined) {
-                                editRow.connection = newValue;
-                                newValue.connection = editRow;
-                            }
+                            setEditRow((prev) => {
+                                return {
+                                    ...prev,
+                                    connection: newValue ?? undefined,
+                                }
+                            });
                         }}
                         renderInput={(params) => <TextField {...params} label="Connection" />}
                     />
                 </Box>
                 <Box>
-
-                    <Button onClick={() => setSourceNode(editRow)}>set Source</Button>
-                    <Button onClick={() => setDestinationNode(editRow)}>set Destination</Button>
-                    <Button onClick={() => onZoomWayPoint(editRow)}>Zoom</Button>
+                    <Button onClick={() => {
+                        const row = rows.find(x => x.data.id === editRow.data.id);
+                        if (row != undefined) {
+                            setDestinationNode(row);
+                        }
+                    }}>set Source</Button>
+                    <Button onClick={() => {
+                        const row = rows.find(x => x.data.id === editRow.data.id);
+                        if (row != undefined) {
+                            setDestinationNode(row);
+                        }
+                    }}>set Destination</Button>
+                    <Button onClick={() => {
+                        const row = rows.find(x => x.data.id === editRow.data.id);
+                        if (row != undefined) {
+                            onZoomWayPoint(row);
+                        }
+                    }}>Zoom</Button>
                     <Button onClick={async () => {
-                        const command = getWaypointCommand(editRow);
+                        const row = rows.find(x => x.data.id === editRow.data.id);
+                        if (row == undefined) {
+                            return;
+                        }
+                        const command = getWaypointCommand(row);
                         await navigator.clipboard.writeText(command);
                     }}>Get Command</Button>
                 </Box>
@@ -218,7 +272,7 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                 >
                     <Button onClick={handleClose}>Cancel</Button>
                     <Button onClick={handleDelete}>Remove</Button>
-                    <Button onClick={(e)=> {onSubmit(e)}} type="submit">Submit</Button>
+                    <Button onClick={(e) => { onSubmit(e) }} type="submit">Submit</Button>
                 </DialogActions>
             </DialogContent>
         </Dialog>

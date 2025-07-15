@@ -2,41 +2,53 @@
 
 import CytoscapeComponent from "@/components/CytoscapeComponent";
 import cytoscape, { Position } from "cytoscape";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PathStepsTable, { OnZoomNode } from "./PathStepsTable";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
 import useWayPointStylesheet from "./useWayPointStylesheet";
-import { PathStep, WayPoint } from "./utils";
+import { PathStep, WayPoint, WayPointInput } from "./utils";
 import WayPointActiveButtons from "./WayPointActiveButtons";
 import WayPointEditDialog from "./WayPointEditDialog";
 import WayPointsDataGrid from "./WayPointsDataGrid";
-import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
-
-const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
-    console.log({key, value, data});
-}
 
 export default function WayPointComponent() {
     const [waypoints, setWayPoints] = useState<WayPoint[]>([]);
     // Initialize source/destination to undefined, let useEffect handle initial assignment
     const [sourceNode, setSourceNode] = useState<WayPoint | undefined>(() => {
-        if(waypoints.length > 2) {
+        if (waypoints.length > 2) {
             return waypoints[0];
         }
         return undefined;
     });
     const [destinationNode, setDestinationNode] = useState<WayPoint | undefined>(() => {
-        if(waypoints.length > 2) {
+        if (waypoints.length > 2) {
             return waypoints[1];
         }
         return undefined;
     });
     const [pathSteps, setPathSteps] = useState<PathStep[]>([]); // New state for path details
     const [openEditDialog, setOpenEditDialog] = useState(false);
-    const [editRow, setEditRow] = useState<WayPoint>({ position: { x: 0, y: 0 }, data: { id: "", label: "", height: 0, createdTime: new Date(), modifiedTime: new Date(), origin: "browser" } });
+    // const [editRow, setEditRow] = useState<WayPoint>({ position: { x: 0, y: 0 }, data: { id: "", label: "", height: 0, createdTime: new Date(), modifiedTime: new Date(), origin: "browser" } });
     const cyRef = useRef<cytoscape.Core | null>(null); // Ref to hold the Cytoscape instance
     // const submitMessage = useContext(SubmitSnackbarContext);
+    const [editRow, setEditRow] = useState<WayPointInput>(() => {
+        return {
+            position: {
+                x: "0",
+                y: "0",
+            },
+            data: {
+                id: "",
+                label: "",
+                height: "0",
+                createdTime: new Date(),
+                modifiedTime: new Date(),
+                origin: "browser"
+            },
+            connection: undefined,
+        };
+    });
 
     const onZoomNode = useCallback<OnZoomNode>((eles, padding) => {
         const cy = cyRef.current;
@@ -65,7 +77,23 @@ export default function WayPointComponent() {
 
     const onEditWayPoint = useCallback((waypoint: WayPoint) => {
         console.log(`Edit waypoint: ${waypoint.data.label}`)
-        setEditRow(waypoint);
+        setEditRow(() => {
+            return {
+                position: {
+                    x: waypoint.position.x.toString(),
+                    y: waypoint.position.y.toString(),
+                },
+                data: {
+                    id: waypoint.data.id,
+                    label: waypoint.data.label,
+                    height: waypoint.data.height.toString(),
+                    createdTime: waypoint.data.createdTime,
+                    modifiedTime: waypoint.data.modifiedTime,
+                    origin: waypoint.data.origin,
+                },
+                connection: waypoint.connection,
+            };
+        });
         setOpenEditDialog(true);
     }, [setEditRow, setOpenEditDialog]);
 
@@ -96,10 +124,10 @@ export default function WayPointComponent() {
             const id = evt.target.id();
             console.log("Edit: " + id)
             const node = waypoints.find(x => x.data.id === id);
-            if(node) {
+            if (node) {
                 onEditWayPoint(node);
             } else {
-                console.error({type: "Node not found", id});
+                console.error({ type: "Node not found", id });
             }
         })
         cy.on('select', 'edge', function (evt) { // Or 'click' for desktop
@@ -110,7 +138,7 @@ export default function WayPointComponent() {
                 nodedata: edge.data(),
             });
         });
-        cy.on('pan', (e) => { console.log(e.position)})
+        cy.on('pan', (e) => { console.log(e.position) })
     }, [waypoints, onEditWayPoint]);
 
     return (
@@ -137,11 +165,11 @@ export default function WayPointComponent() {
                 onZoomPosition={onZoomPosition}
             />
             <h4>WayPoint Path</h4>
-            <PathStepsTable 
+            <PathStepsTable
                 pathSteps={pathSteps}
                 onZoomNode={onZoomNode}
                 sourceNode={sourceNode}
-                destinationNode={destinationNode}            
+                destinationNode={destinationNode}
             />
             <h4>WayPoint Table</h4>
             <WayPointsDataGrid
@@ -152,7 +180,7 @@ export default function WayPointComponent() {
                 setSourceNode={setSourceNode}
                 setDestinationNode={setDestinationNode}
                 handleOpenEditDialog={onEditWayPoint}
-            />        
+            />
             <WayPointEditDialog
                 open={openEditDialog}
                 setOpen={setOpenEditDialog}

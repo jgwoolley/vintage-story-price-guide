@@ -39,6 +39,30 @@ export const WayPointJsonsSchema = z.object({
 
 export type WayPointsJson = z.infer<typeof WayPointJsonsSchema>;
 
+// Define the Zod schema for a numeric string.
+// It allows an empty string or a valid number string.
+// A single minus sign will now be considered invalid.
+const numericStringSchema = z.string().superRefine((val, ctx) => {
+  if (val === '') {
+    // Allow empty string
+    return;
+  }
+  // Check if it's a valid number string.
+  // A single minus sign will fail this check and be marked invalid.
+  if (isNaN(Number(val))) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Must be a valid number.', // Updated message for clarity
+    });
+  }
+});
+
+export type WayPointInput = {
+    position: {x: string, y: string},
+    data: Omit<WayPointData, "height"> & { "height": string, },
+    connection?: WayPoint,
+};
+
 export type WayPoint = {
     data: WayPointData,
     position: Position,
