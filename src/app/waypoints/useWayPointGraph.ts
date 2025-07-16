@@ -1,14 +1,14 @@
+import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
 import cytoscape from "cytoscape";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { PathStep, WayPoint } from "./utils";
-import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
 
 export type UseWayPointGraphProps = {
     cy: cytoscape.Core | null,
     sourceNode: WayPoint | undefined,
-    setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    // setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     destinationNode: WayPoint | undefined,
-    setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    // setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     setPathSteps: Dispatch<SetStateAction<PathStep[]>>,
     waypoints: WayPoint[],
     // submitMessage: SubmitSnackbarMessage,
@@ -115,14 +115,16 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
         }
     }
     setPathSteps(currentPathSteps);
-    cy.fit(path);
+    // cy.fit(path);
 }
 
-export function useWayPointGraph({ cy, sourceNode, setSourceNode, destinationNode, setDestinationNode, setPathSteps, waypoints }: UseWayPointGraphProps) {    
+export function useWayPointGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoints }: UseWayPointGraphProps) {    
+
     /**
      * useEffect hook for handling shortest path highlighting and edge visibility.
      */
     useEffect(() => {
+        console.log("redraw");
         try {
             calculateGraph({
                 cy,

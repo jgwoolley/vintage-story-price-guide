@@ -8,20 +8,20 @@ import FileUploader from "./FileUploader";
 import { deserializeWayPoints, serializeWayPoints, WayPoint, WayPointJsonsSchema } from "./utils";
 
 const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
-    console.log({key, value, data});
+    console.log({ key, value, data });
 }
 
 export type WayPointActiveButtonsProps = {
     sourceNode: WayPoint | undefined,
-    // setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    setSourceNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     destinationNode: WayPoint | undefined,
-    // setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
+    setDestinationNode: Dispatch<SetStateAction<WayPoint | undefined>>,
     waypoints: WayPoint[],
     setWaypoints: Dispatch<SetStateAction<WayPoint[]>>,
     onZoomPosition: (position: cytoscape.Position) => void,
 }
 
-export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, destinationNode, onZoomPosition }: WayPointActiveButtonsProps) {
+export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceNode, setSourceNode, destinationNode, setDestinationNode, onZoomPosition, }: WayPointActiveButtonsProps) {
     const [createdTime, setCreatedTime] = useState<Date>();
     const [modifiedTime, setModifiedTime] = useState<Date>();
     // const submitSnackbarMessage = useContext(SubmitSnackbarContext);
@@ -52,8 +52,8 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                     setWaypoints(prevWaypoints => {
                         const oldIds = new Set(prevWaypoints.map(x => x.data.id));
                         const sharedIds = newIds.intersection(oldIds);
-                        if(sharedIds.size > 0) {
-                            submitSnackbarMessage("Failed to Upload WayPoints: Multiple WayPoints share same internal id", "error", {type: "Had shared ids", sharedIds})
+                        if (sharedIds.size > 0) {
+                            submitSnackbarMessage("Failed to Upload WayPoints: Multiple WayPoints share same internal id", "error", { type: "Had shared ids", sharedIds })
                             // TODO: In event of shared ids maybe do something smarter...
                             return prevWaypoints;
                         }
@@ -62,18 +62,28 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                         return [...prevWaypoints, ...newWaypoints];
                     });
 
-                    // if(result.data.source) {
-                    //     const value = newWaypoints.find(x => x.data.id === result.data.source);
-                    //     if(value) {
-                    //         setSourceNode(value);
-                    //     }
-                    // }
-                    // if(result.data.destination) {
-                    //     const value = newWaypoints.find(x => x.data.id === result.data.destination);
-                    //     if(value) {
-                    //         setDestinationNode(value);
-                    //     }
-                    // }
+                    if (result.data.source) {
+                        const value = newWaypoints.find(x => x.data.id === result.data.source);
+                        console.log({ value, type: "found source" });
+                        if (value) {
+                            setSourceNode({ ...value });
+                        } else {
+                            console.error(`Could not find node with id: [${result.data.source}].`);
+                        }
+                    } else {
+                        console.error(`Could not find source node.`);
+                    }
+                    if (result.data.destination) {
+                        const value = newWaypoints.find(x => x.data.id === result.data.destination);
+                        console.log({ value, type: "found dest" });
+                        if (value) {
+                            setDestinationNode({ ...value });
+                        } else {
+                            console.error(`Could not find destination node with id: [${result.data.destination}].`);
+                        }
+                    } else {
+                        console.error(`Could not find destination node.`);
+                    }
 
                 } else {
                     submitSnackbarMessage("Failed to Upload WayPoints", "error", result.error);
@@ -82,7 +92,13 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                 submitSnackbarMessage("Failed to Upload WayPoints", "error", error);
             }
         }
-    }, [setWaypoints, submitSnackbarMessage, createdTime]);
+    }, [
+        setWaypoints, 
+        // submitSnackbarMessage, 
+        createdTime, 
+        setDestinationNode, 
+        setSourceNode,
+    ]);
 
     const downloadWaypoints = useCallback<() => void>(() => {
         const results = serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode });
@@ -98,7 +114,7 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                 onClick={() => {
                     // Ensure new waypoint gets a unique ID
                     const newId = `new-${Date.now()}-${waypoints.length}-${Math.random().toString(36).substring(2, 9)}`; // More robust unique ID
-
+                    const position: cytoscape.Position = {x: 0, y: 0};
                     const newRow: WayPoint = {
                         data: {
                             id: newId,
@@ -108,13 +124,12 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
                             modifiedTime: new Date(),
                             origin: "browser",
                         },
-                        position: {
-                            x: 0,
-                            y: 0,
-                        }
+                        position: position,
                     }
 
                     setWaypoints(prevWaypoints => [...prevWaypoints, newRow]);
+                    //TODO: This is not working...
+                    // onZoomPosition(position);
                 }}
             >
                 Add Waypoint
@@ -131,7 +146,7 @@ export default function WayPointActiveButtons({ waypoints, setWaypoints, sourceN
             >
                 Delete WayPoints
             </Button>
-            <Button onClick={() => onZoomPosition({x: 0, y: 0})}>ReCenter Graph</Button>
+            <Button onClick={() => onZoomPosition({ x: 0, y: 0 })}>Recenter</Button>
         </ButtonGroup>
     )
 }

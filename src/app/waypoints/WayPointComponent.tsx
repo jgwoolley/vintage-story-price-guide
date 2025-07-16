@@ -109,9 +109,7 @@ export default function WayPointComponent() {
     useWayPointGraph({
         cy: cyRef.current,
         sourceNode,
-        setSourceNode,
         destinationNode,
-        setDestinationNode,
         setPathSteps,
         waypoints,
     });
@@ -163,6 +161,8 @@ export default function WayPointComponent() {
                 sourceNode={sourceNode}
                 destinationNode={destinationNode}
                 onZoomPosition={onZoomPosition}
+                setDestinationNode={setDestinationNode}
+                setSourceNode={setSourceNode}
             />
             <h4>WayPoint Path</h4>
             <PathStepsTable
@@ -181,6 +181,10 @@ export default function WayPointComponent() {
                 setDestinationNode={setDestinationNode}
                 handleOpenEditDialog={onEditWayPoint}
             />
+            <h4>Debug</h4>
+            <p>Source {sourceNode?.data.id}</p>
+            <p>DestinationNode {destinationNode?.data.id}</p>
+
             <WayPointEditDialog
                 open={openEditDialog}
                 setOpen={setOpenEditDialog}

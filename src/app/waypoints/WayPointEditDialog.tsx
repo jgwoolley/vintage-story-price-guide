@@ -1,9 +1,9 @@
 'use client';
 
-import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, TextFieldProps } from "@mui/material";
-import { Dispatch, SetStateAction, useCallback, useContext, useState } from "react";
-import { getWaypointCommand, stringifyWayPoint, WayPoint, WayPointInput } from "./utils";
 import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
+import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import { getWaypointCommand, stringifyWayPoint, WayPoint, WayPointInput } from "./utils";
 
 const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
     console.log({ key, value, data });
@@ -60,10 +60,6 @@ function NumericTextInput({ label, value, onUpdate, setEditRow} : NumericTextInp
 export default function WayPointEditDialog({ rows, setRows, open, setOpen, editRow, setEditRow, setSourceNode, setDestinationNode, onZoomWayPoint }: WayPointsDataGridProps) {
     // const submitSnackbarMessage = useContext(SubmitSnackbarContext);
 
-    const [ isXError, setIsXError ] = useState<boolean>(false);
-    const [ isYError, setIsYError ] = useState<boolean>(false);
-    const [ isZError , setIsZError ] = useState<boolean>(false);
-
     const handleClose = useCallback(() => {
         setOpen(false);
     }, [setOpen]);
@@ -116,7 +112,7 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
             handleClose();
             return results;
         });
-    }, [setRows, editRow, handleClose, submitSnackbarMessage]);
+    }, [rows, setRows, editRow, handleClose, submitSnackbarMessage]);
 
     return (
         <Dialog open={open} onClose={handleClose}>
@@ -236,15 +232,15 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                     <Button onClick={() => {
                         const row = rows.find(x => x.data.id === editRow.data.id);
                         if (row != undefined) {
-                            setDestinationNode(row);
+                            setSourceNode(row);
                         }
-                    }}>set Source</Button>
+                    }}>set source</Button>
                     <Button onClick={() => {
                         const row = rows.find(x => x.data.id === editRow.data.id);
                         if (row != undefined) {
                             setDestinationNode(row);
                         }
-                    }}>set Destination</Button>
+                    }}>set destination</Button>
                     <Button onClick={() => {
                         const row = rows.find(x => x.data.id === editRow.data.id);
                         if (row != undefined) {
@@ -259,6 +255,11 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
                         const command = getWaypointCommand(row);
                         await navigator.clipboard.writeText(command);
                     }}>Get Command</Button>
+                    <Button onClick={() => {
+                        if (editRow.connection != undefined) {
+                            onZoomWayPoint(editRow.connection);
+                        }
+                    }}>Zoom On Connection</Button>
                 </Box>
                 <DialogActions
                     sx={{

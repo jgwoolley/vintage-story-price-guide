@@ -39,24 +39,6 @@ export const WayPointJsonsSchema = z.object({
 
 export type WayPointsJson = z.infer<typeof WayPointJsonsSchema>;
 
-// Define the Zod schema for a numeric string.
-// It allows an empty string or a valid number string.
-// A single minus sign will now be considered invalid.
-const numericStringSchema = z.string().superRefine((val, ctx) => {
-  if (val === '') {
-    // Allow empty string
-    return;
-  }
-  // Check if it's a valid number string.
-  // A single minus sign will fail this check and be marked invalid.
-  if (isNaN(Number(val))) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Must be a valid number.', // Updated message for clarity
-    });
-  }
-});
-
 export type WayPointInput = {
     position: {x: string, y: string},
     data: Omit<WayPointData, "height"> & { "height": string, },
@@ -90,7 +72,6 @@ export function deserializeWayPoints(waypoints: WayPointsJson): [WayPoint[], Set
         } else {
             ids.add(id);
         }
-        console.log(id);
 
         const newRow: WayPoint = {
             position: row.position,
@@ -125,7 +106,15 @@ export function deserializeWayPoints(waypoints: WayPointsJson): [WayPoint[], Set
     return [results, ids];
 }
 
-export function serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode }: { createdTime: Date | undefined, modifiedTime: Date | undefined, waypoints: WayPoint[], sourceNode: WayPoint | undefined, destinationNode: WayPoint | undefined }): WayPointsJson {
+export type SerializeWayPointsArgs = { 
+    createdTime: Date | undefined, 
+    modifiedTime: Date | undefined, 
+    waypoints: WayPoint[], 
+    sourceNode: WayPoint | undefined, 
+    destinationNode: WayPoint | undefined,
+}
+
+export function serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode }: SerializeWayPointsArgs): WayPointsJson {
     const newWaypoints: WayPointJson[] = [];
     for (const row of waypoints) {
         const newRow: WayPointJson = {
