@@ -29,7 +29,7 @@ export const WayPointJsonSchema = z.object({
 
 export type WayPointJson = z.infer<typeof WayPointJsonSchema>;
 
-export const WayPointJsonsSchema = z.object({
+export const VintageStoryToolDataSchema = z.object({
     createdTime: z.coerce.date(),
     modifiedTime: z.coerce.date(),
     source: z.string().optional(),
@@ -37,7 +37,7 @@ export const WayPointJsonsSchema = z.object({
     waypoints: z.array(WayPointJsonSchema),
 });
 
-export type WayPointsJson = z.infer<typeof WayPointJsonsSchema>;
+export type VintageStoryToolData = z.infer<typeof VintageStoryToolDataSchema>;
 
 export type WayPointInput = {
     position: {x: string, y: string},
@@ -61,7 +61,7 @@ export function calculateDistance({ source, destination }: { source: WayPoint, d
     return Math.sqrt(dx * dx + dz * dz);
 }
 
-export function deserializeWayPoints(waypoints: WayPointsJson): [WayPoint[], Set<string>] {
+export function deserializeWayPoints(waypoints: VintageStoryToolData): [WayPoint[], Set<string>] {
     const results: WayPoint[] = [];
     const ids = new Set<string>();
     for (const row of waypoints.waypoints) {
@@ -114,7 +114,7 @@ export type SerializeWayPointsArgs = {
     destinationNode: WayPoint | undefined,
 }
 
-export function serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode }: SerializeWayPointsArgs): WayPointsJson {
+export function serializeWayPoints({ createdTime, modifiedTime, waypoints, sourceNode, destinationNode }: SerializeWayPointsArgs): VintageStoryToolData {
     const newWaypoints: WayPointJson[] = [];
     for (const row of waypoints) {
         const newRow: WayPointJson = {

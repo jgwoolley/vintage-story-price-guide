@@ -2,7 +2,7 @@
 
 import { Button, ButtonGroup } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { calculateDistance, WayPoint } from "./utils";
+import { calculateDistance, WayPoint } from "@/utils/utils";;
 
 type WayPointsDataGridProps = {
     sourceNode: WayPoint | undefined,

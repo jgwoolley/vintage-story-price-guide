@@ -1,7 +1,7 @@
 import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
 import cytoscape from "cytoscape";
 import { Dispatch, SetStateAction, useEffect } from "react";
-import { PathStep, WayPoint } from "./utils";
+import { PathStep, WayPoint } from "@/utils/utils";;
 
 export type UseWayPointGraphProps = {
     cy: cytoscape.Core | null,

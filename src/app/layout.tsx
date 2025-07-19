@@ -19,11 +19,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <EmotionRegistry>
-          <LayoutComponent>
             <SnackbarProvider>
-              {children}
+              <LayoutComponent>
+                {children}
+              </LayoutComponent>
             </SnackbarProvider>
-          </LayoutComponent>
         </EmotionRegistry>
       </body>
     </html>

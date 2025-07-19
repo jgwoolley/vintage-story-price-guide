@@ -3,7 +3,7 @@
 import { SubmitSnackbarMessage } from "@/components/SnackbarProvider";
 import { Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
-import { getWaypointCommand, stringifyWayPoint, WayPoint, WayPointInput } from "./utils";
+import { getWaypointCommand, stringifyWayPoint, WayPoint, WayPointInput } from "@/utils/utils";;
 
 const submitSnackbarMessage: SubmitSnackbarMessage = (key, value, data) => {
     console.log({ key, value, data });
@@ -112,7 +112,13 @@ export default function WayPointEditDialog({ rows, setRows, open, setOpen, editR
             handleClose();
             return results;
         });
-    }, [rows, setRows, editRow, handleClose, submitSnackbarMessage]);
+    }, [
+        rows, 
+        setRows,
+        editRow, 
+        handleClose, 
+        // submitSnackbarMessage,
+    ]);
 
     return (
         <Dialog open={open} onClose={handleClose}>

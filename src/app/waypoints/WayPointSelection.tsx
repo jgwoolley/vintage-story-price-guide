@@ -1,4 +1,4 @@
-import { stringifyWayPoint, WayPoint } from "./utils";
+import { stringifyWayPoint, WayPoint } from "@/utils/utils";;
 
 export type WayPointSelectionProps = {
     name: string,

@@ -5,6 +5,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { AppBar, Container, Menu, MenuItem, Stack, Toolbar, Tooltip, Typography } from "@mui/material";
 import Link from "next/link";
 import { PropsWithChildren, useState } from "react";
+import { toolRoutes } from "./routes";
 
 function LayoutAppBarMenuItem({ href, children }: PropsWithChildren<{ href: string }>) {
     return (
@@ -46,9 +47,7 @@ function LayoutAppBarMenu() {
                     }
                 }}
             >
-                <LayoutAppBarMenuItem href="/">Home</LayoutAppBarMenuItem>
-                <LayoutAppBarMenuItem href="/trades">Trades</LayoutAppBarMenuItem>
-                <LayoutAppBarMenuItem href="/waypoints">Waypoints</LayoutAppBarMenuItem>
+                {toolRoutes.map((x, index) => (<LayoutAppBarMenuItem key={index} href={x.href}>{x.shortName}</LayoutAppBarMenuItem>))}
             </Menu>
         </>
     )

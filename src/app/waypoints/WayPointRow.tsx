@@ -1,7 +1,7 @@
 'use client';
 
 import { Dispatch, SetStateAction } from "react";
-import { WayPoint } from "./utils";
+import { WayPoint } from "@/utils/utils";;
 import WayPointSelection from "./WayPointSelection";
 
 export type WayPointRowProps = {

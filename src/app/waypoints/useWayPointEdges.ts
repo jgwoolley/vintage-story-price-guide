@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { calculateDistance, WayPoint } from "./utils";
+import { calculateDistance, WayPoint } from "@/utils/utils";;
 
 export type UseWayPointEdgesProps = {
     waypoints: WayPoint[],

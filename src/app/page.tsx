@@ -41,11 +41,12 @@ export default async function Home() {
   return (
     <>
       <Grid container spacing={4} sx={{ p: 4 }}>
-        {toolRoutes.map(({name, description, href, IconComponent}, index) => (
+        {toolRoutes.map(({name, description, href, IconComponent, shortName}, index) => (
         <ToolCard
             key={index}
             name={name}
             description={description}
+            shortName={shortName}
             href={href}
             IconComponent={IconComponent}
           />

@@ -7,7 +7,7 @@ import PathStepsTable, { OnZoomNode } from "./PathStepsTable";
 import useWayPointEdges from "./useWayPointEdges";
 import { useWayPointGraph } from "./useWayPointGraph";
 import useWayPointStylesheet from "./useWayPointStylesheet";
-import { PathStep, WayPoint, WayPointInput } from "./utils";
+import { PathStep, WayPoint, WayPointInput } from "@/utils/utils";;
 import WayPointActiveButtons from "./WayPointActiveButtons";
 import WayPointEditDialog from "./WayPointEditDialog";
 import WayPointsDataGrid from "./WayPointsDataGrid";
@@ -152,9 +152,11 @@ export default function WayPointComponent() {
                 autolock={true}
                 cy={cyFunction}
             />
+            <p>Click on a WayPoint to open up the WayPoint dialog. This will allow you to perform various functions on the WayPoint.</p>
 
             {/* Action Buttons */}
             <h4>WayPoint Actions</h4>
+            <p>The following buttons will allow you to edit the WayPoints in the graph.</p>
             <WayPointActiveButtons
                 waypoints={waypoints}
                 setWaypoints={setWayPoints}
@@ -165,6 +167,7 @@ export default function WayPointComponent() {
                 setSourceNode={setSourceNode}
             />
             <h4>WayPoint Path</h4>
+            <p>This path will show you how to get from one WayPoint to another. Click on the name of the WayPoint to have the graph center on it.</p>
             <PathStepsTable
                 pathSteps={pathSteps}
                 onZoomNode={onZoomNode}
@@ -172,6 +175,7 @@ export default function WayPointComponent() {
                 destinationNode={destinationNode}
             />
             <h4>WayPoint Table</h4>
+            <p>Click on the column name in the following table to perform various filtering & sorting operations.</p>
             <WayPointsDataGrid
                 sourceNode={sourceNode}
                 destinationNode={destinationNode}
@@ -181,10 +185,6 @@ export default function WayPointComponent() {
                 setDestinationNode={setDestinationNode}
                 handleOpenEditDialog={onEditWayPoint}
             />
-            <h4>Debug</h4>
-            <p>Source {sourceNode?.data.id}</p>
-            <p>DestinationNode {destinationNode?.data.id}</p>
-
             <WayPointEditDialog
                 open={openEditDialog}
                 setOpen={setOpenEditDialog}

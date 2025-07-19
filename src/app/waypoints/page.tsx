@@ -1,5 +1,5 @@
 import { wayPointRoute } from "../routes";
-import WayPointComponent from "./WayPointComponent";
+import PageComponent from "./PageComponent";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -9,6 +9,6 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <WayPointComponent />
+    <PageComponent />
   );
 }

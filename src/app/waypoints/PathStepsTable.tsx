@@ -2,7 +2,7 @@
 
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import cytoscape from "cytoscape";
-import { calculateDistance, convertNodeToWayPoint, PathStep, WayPoint } from "./utils";
+import { calculateDistance, convertNodeToWayPoint, PathStep, WayPoint } from "@/utils/utils";;
 
 export type OnZoomNode = (eles?: cytoscape.CollectionArgument, padding?: number) => void;
 
