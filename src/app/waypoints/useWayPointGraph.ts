@@ -53,6 +53,7 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
             cy.edges("edge[weight != 0]").removeClass('hidden-edge');
             setPathSteps([]);
         }
+        console.error("nodes aren't ready");
         return; // Do not proceed or submit message if nodes aren't ready
     }
 
@@ -60,7 +61,14 @@ function calculateGraph({ cy, sourceNode, destinationNode, setPathSteps, waypoin
 
 
     if (sourceCyNode.length === 0 || destinationCyNode.length === 0) {
-        submitSnackbarMessage("Failed to calculate graph", "error", { source: sourceCyNode, destination: destinationCyNode, sourceNode, destinationNode, sourceId: sourceNode.data.id, destinationId: destinationNode.data.id })
+        submitSnackbarMessage("Failed to calculate graph", "error", { 
+            source: sourceCyNode, 
+            destination: destinationCyNode, 
+            sourceNode, destinationNode, 
+            sourceId: sourceNode.data.id, 
+            destinationId: destinationNode.data.id 
+        });
+        console.error("Failed to calculate graph");
         return;
     }
 

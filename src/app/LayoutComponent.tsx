@@ -1,11 +1,14 @@
 'use client';
 
+import EmotionRegistry from "@/components/EmotionRegistry";
+import SnackbarProvider from "@/components/SnackbarProvider";
 import siteInfo from "@/utils/siteInfo";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import { AppBar, Container, Menu, MenuItem, Stack, Toolbar, Tooltip, Typography } from "@mui/material";
+import { AppBar, Container, createTheme, CssBaseline, Menu, MenuItem, PaletteMode, Stack, ThemeProvider, Toolbar, Tooltip, Typography } from "@mui/material";
 import Link from "next/link";
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useMemo, useState } from "react";
 import { toolRoutes } from "./routes";
+import { useBrowserIsDarkMode } from "@/hooks/useBrowserIsDarkMode";
 
 function LayoutAppBarMenuItem({ href, children }: PropsWithChildren<{ href: string }>) {
     return (
@@ -72,11 +75,43 @@ function LayoutAppBar() {
     )
 }
 
+export type ColorMode = "dark" | "light" | "system";
+
+const colorModeLut: Readonly<Record<ColorMode, PaletteMode | undefined>> = {
+    dark: 'dark',
+    light: 'light',
+    system: undefined,
+};
+
 export default function LayoutComponent({ children }: PropsWithChildren) {
+    const [colorMode] = useState<ColorMode>("system");
+    const browserIsDarkMode = useBrowserIsDarkMode();
+
+    const theme = useMemo(() => {
+        let mode = colorModeLut[colorMode];
+        if (colorMode === "system") {
+            mode = browserIsDarkMode ? "dark" : "light";
+        }
+
+        return createTheme({
+            palette: {
+                mode: mode,
+            },
+        });
+
+    }, [browserIsDarkMode, colorMode]);
+
     return (
-        <Container>
-            <LayoutAppBar />
-            {children}
-        </Container>
+        <ThemeProvider theme={theme}>
+            <EmotionRegistry>
+                <SnackbarProvider>
+                    <Container>
+                        <LayoutAppBar />
+                        {children}
+                    </Container>
+                </SnackbarProvider>
+            </EmotionRegistry>
+            <CssBaseline />
+        </ThemeProvider>
     );
 }

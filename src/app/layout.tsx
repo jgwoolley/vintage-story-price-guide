@@ -1,8 +1,6 @@
-import EmotionRegistry from "@/components/EmotionRegistry";
 import siteInfo from "@/utils/siteInfo";
 import type { Metadata } from "next";
 import LayoutComponent from "./LayoutComponent";
-import SnackbarProvider from "@/components/SnackbarProvider";
 
 export const metadata: Metadata = {
   title: siteInfo.title,
@@ -18,13 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <EmotionRegistry>
-            <SnackbarProvider>
-              <LayoutComponent>
-                {children}
-              </LayoutComponent>
-            </SnackbarProvider>
-        </EmotionRegistry>
+          <LayoutComponent>
+            {children}
+          </LayoutComponent>
       </body>
     </html>
   );
