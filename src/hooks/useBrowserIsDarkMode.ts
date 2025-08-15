@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * 
  * @returns 
  */
-export function useBrowserIsDarkMode() {
+export function useBrowserIsDarkMode(): boolean {
     const [isDarkMode, setIsDarkMode] = useState(false);
   
     useEffect(() => {

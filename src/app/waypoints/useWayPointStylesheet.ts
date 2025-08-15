@@ -1,25 +1,28 @@
+import { useBrowserIsDarkMode } from "@/hooks/useBrowserIsDarkMode";
 import cytoscape from "cytoscape";
+
+
+type PatchedCytoscapeNode = cytoscape.Css.Node & { color: string | undefined };
 
 // Cytoscape stylesheet definitions for nodes and edges
 export default function useWayPointStylesheet(): cytoscape.Stylesheet[] {
+    const isDarkMode = useBrowserIsDarkMode();
+
+    const defaultNodeStyle : PatchedCytoscapeNode = {
+        'background-color': isDarkMode ? '#fff': '#666',
+        label: 'data(label)',
+        "overlay-color": isDarkMode ? '#fff': '#444',
+        color: isDarkMode ? '#fff': undefined,
+        'width': '20px', // Fixed node size
+        'height': '20px',
+        'border-width': 1,
+        'border-color': isDarkMode ? '#fff': '#444',
+    };
+
     return [
     {
         selector: 'node',
-        style: {
-            'background-color': '#666',
-            label: 'data(label)',
-            // 'font-size': '12px',
-            // color: '#fff',
-            // 'text-halign': 'center',
-            // 'text-valign': 'center',
-            'width': '20px', // Fixed node size
-            'height': '20px',
-            'border-width': 1,
-            'border-color': '#444',
-            // 'text-outline-color': '#333',
-            // 'text-outline-width': 1,
-            // 'text-transform': 'uppercase',
-        },
+        style: defaultNodeStyle,
     },
     {
         selector: 'edge',
@@ -31,15 +34,6 @@ export default function useWayPointStylesheet(): cytoscape.Stylesheet[] {
             'curve-style': 'bezier',
             'label': 'data(weight)', // Show weight if applicable
             'opacity': 0,
-            // 'font-size': '8px',
-            // 'color': '#666',
-            // 'text-background-opacity': 1,
-            // 'text-background-color': '#eee',
-            // 'visibility': 'visible', // Default to visible
-            // 'text-margin-y': -10, // Adjust label position
-            // 'line-cap': 'round',
-            // 'arrow-scale': 0.8,
-            // 'text-rotation': 'autorotate', // Rotate labels with edges
         },
     },
     {
